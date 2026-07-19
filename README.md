@@ -63,6 +63,22 @@ Ops CLI (scaffold):
 cd ops && npm install && npm run build && node dist/index.js --help
 ```
 
+## Public ledger state vs private witness
+
+The whole trust story compresses into one asymmetry: **the only public things are the things that keep the house honest.** Reserve is committed onchain *before* any bid; reserve is revealed onchain *after* close — and the contract verifies the reveal against the original commitment. Everything else about bids stays private, forever.
+
+| Observer can see | Observer can NEVER see |
+|---|---|
+| Drop exists, item metadata, stock remaining | Any bid amount (including losing bids) |
+| Reserve **commitment** (hash) | What a winner actually paid |
+| Number of bids placed | How close a losing bid was |
+| Winner claim proofs (item ownership) | Which wallet bid vs. merely browsed |
+| Revealed reserve **after** close + hash-match proof | House's reserve before close |
+
+Concretely: `bidAmount` and `bidderSecret` are Compact **witnesses** — private inputs consumed inside the ZK circuit and never written to ledger state. `commitment`, `stock`, `closeTime`, `metaRef`, `bidCount`, and (post-close) `revealedReserve` are ledger fields — public. `disclose()` appears exactly twice: (a) at winner claim, (b) at post-close reserve reveal.
+
+Even the house cannot see bids pre-verdict, so the house cannot selectively accept or front-run.
+
 ## Docs
 
 - [Design spec](docs/superpowers/specs/2026-07-19-lowball-design.md)
