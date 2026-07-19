@@ -1,11 +1,26 @@
 # contract/
 
-LOWBALL Compact contract sources. Compile with the pinned Compact toolchain:
+LOWBALL Compact contract sources + Vitest tests. Layout mirrors
+[midnightntwrk/example-counter](https://github.com/midnightntwrk/example-counter).
 
 ```
-compact compile hello-world.compact managed/hello-world
+contract/
+  src/
+    lowball.compact        # main contract (arrives with L1)
+    hello-world.compact    # toolchain smoke test
+    test/                  # Vitest + simulator tests
+    managed/               # generated build artifacts (git-ignored)
 ```
 
-Build artifacts land in `managed/` (git-ignored — keys and generated JS live here).
-The real LOWBALL circuits (`createDrop`, `placeBid`, `revealReserve`, `claimItem`) land in L1.
-`hello-world.compact` is a smoke-test to verify the toolchain end-to-end.
+Compile + test:
+
+```
+cd contract
+npm install
+npm run compact          # or: npm run compact:hello for the smoke test
+npm test                 # vitest run
+npm run test:compile     # compile then run tests
+```
+
+`managed/` (prover/verifier keys, generated JS, ZK IR) is regenerated on
+every compile and never committed.
