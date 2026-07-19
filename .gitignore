@@ -1,7 +1,25 @@
+# Node / build
 node_modules/
 dist/
+build/
+*.tsbuildinfo
+coverage/
+**/reports/
+
+# Env
 .env
-.env.*
+*.env
+!*.env.example
 *.local
+
+# Midnight-generated artifacts (per midnightntwrk/example-counter)
+managed/
+midnight-level-db/
+
+# House-side secrets — never commit
 ops/vault*
+ops/**/*.key
+ops/**/*.preimage
+
+# OS
 .DS_Store
