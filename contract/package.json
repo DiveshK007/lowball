@@ -8,5 +8,12 @@
     "compact:hello": "compact compile src/hello-world.compact src/managed/hello-world",
     "test": "vitest run",
     "test:compile": "npm run compact && vitest run"
+  },
+  "devDependencies": {
+    "@midnight-ntwrk/compact-runtime": "^0.16.0",
+    "@midnight-ntwrk/midnight-js-network-id": "^4.1.1",
+    "@types/node": "^22.20.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

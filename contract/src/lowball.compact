@@ -1,0 +1,104 @@
+// LOWBALL — sealed-bid mystery drop.
+// L1 skeleton: single-drop-per-contract, no in-circuit deadline, no
+// shielded escrow (see docs/spikes/ for the decisions behind these
+// simplifications). Multi-drop, admin gating, and escrow arrive later.
+
+pragma language_version >= 0.20;
+
+import CompactStandardLibrary;
+
+export enum DropStatus {
+  UNSET,
+  OPEN,
+  REVEALED
+}
+
+// Public ledger state (see docs/architecture.md §3.1)
+export ledger status: DropStatus;
+export ledger commitment: Bytes<32>;
+export ledger stock: Uint<32>;
+export ledger closeTime: Uint<64>;
+export ledger metaRef: Opaque<"string">;
+export ledger bidCount: Counter;
+export ledger latestBidCommitment: Bytes<32>;
+export ledger revealedReserve: Uint<64>;
+export ledger winnerFound: Boolean;
+
+// Private witnesses (see docs/architecture.md §3.1)
+witness bidAmountWitness(): Uint<64>;
+witness bidderSecretWitness(): Bytes<32>;
+witness reserveWitness(): Uint<64>;
+witness saltWitness(): Bytes<32>;
+
+// Domain-separated hash of (bidAmount, bidderSecret) for a bid.
+// Exported so ops + tests can compute the same commitment.
+export circuit bidHash(amount: Uint<64>, secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([
+    pad(32, "lowball:bid:v1"),
+    secret,
+    amount as Field as Bytes<32>
+  ]);
+}
+
+// Domain-separated hash of (reserve, salt) for the sealed reserve.
+// Exported so ops (create-drop) can pre-compute the commitment offline.
+export circuit reserveHash(reserve: Uint<64>, salt: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([
+    pad(32, "lowball:reserve:v1"),
+    salt,
+    reserve as Field as Bytes<32>
+  ]);
+}
+
+// createDrop: publish the sealed reserve commitment + drop config.
+// L1: no admin gate; one drop per deployed contract.
+export circuit createDrop(
+  commitment_: Bytes<32>,
+  stock_: Uint<32>,
+  closeTime_: Uint<64>,
+  metaRef_: Opaque<"string">
+): [] {
+  assert(status == DropStatus.UNSET, "drop already created");
+  commitment = disclose(commitment_);
+  stock = disclose(stock_);
+  closeTime = disclose(closeTime_);
+  metaRef = disclose(metaRef_);
+  status = DropStatus.OPEN;
+}
+
+// placeBid: seal a bid as a commitment. Verdict deferred to checkWin
+// per spec §10 (L1 uses spec §3.4 fallback funds path).
+export circuit placeBid(): [] {
+  assert(status == DropStatus.OPEN, "drop not open");
+  latestBidCommitment = disclose(
+    bidHash(bidAmountWitness(), bidderSecretWitness())
+  );
+  bidCount.increment(1);
+}
+
+// revealReserve: hash the (reserve, salt) witnesses and assert they
+// match the committed hash. Tampered reveals fail the assert.
+export circuit revealReserve(): [] {
+  assert(status == DropStatus.OPEN, "drop not open");
+  const reserve = reserveWitness();
+  assert(
+    reserveHash(reserve, saltWitness()) == commitment,
+    "reveal does not match commitment"
+  );
+  revealedReserve = disclose(reserve);
+  status = DropStatus.REVEALED;
+}
+
+// checkWin: post-reveal verdict. Bidder proves they placed the recorded
+// bid and its amount is >= the revealed reserve. On WIN, winnerFound
+// becomes true. On LOSS the assert fails (nothing disclosed).
+export circuit checkWin(): [] {
+  assert(status == DropStatus.REVEALED, "reserve not yet revealed");
+  const amount = bidAmountWitness();
+  assert(
+    bidHash(amount, bidderSecretWitness()) == latestBidCommitment,
+    "bid preimage mismatch"
+  );
+  assert(amount >= revealedReserve, "bid below reserve");
+  winnerFound = true;
+}
