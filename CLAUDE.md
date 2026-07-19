@@ -6,6 +6,7 @@ Provably-fair sealed-bid mystery drops on Midnight. Read `docs/superpowers/specs
 
 - Never add AI attribution anywhere: no Co-Authored-By trailers, no "Generated with Claude Code" lines, no AI mentions in commit messages, PRs, code comments, or docs.
 - Commit in small meaningful units — the program counts commits per level (L1: 5+, L2: 8+, L3: 10+).
+- Commit messages: short and crisp — imperative subject ≤50 chars, no body unless truly needed (e.g. "Add bid escrow circuit", not "Expand README with idea, setup, and capture...").
 - Never commit: reserve preimages/salts, private keys, `ops/` vault files, `.env`.
 - If code and spec conflict, update the spec deliberately (decisions log in spec §10) — don't silently drift.
 - Capture program screenshots into `docs/submissions/L<n>/` the moment a milestone first works.
