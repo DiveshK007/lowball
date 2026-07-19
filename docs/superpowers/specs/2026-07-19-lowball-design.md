@@ -98,3 +98,7 @@ Unit of growth = **the drop as content**. Post format: "🎰 Drop #N: [item]. Re
 - Category: Consumer focus (Gaming defensible; Consumer chosen for startup framing).
 - No backend server in v1 — chain + static hosting only.
 - Name LOWBALL is a working title; collision-check before mainnet branding (L6).
+- **2026-07-19 (L1):** Adopted spec §3.4 fallback funds path — `placeBid` records a bid commitment only; no shielded value moves at bid time. Shielded escrow deferred pending an L2 spike against Preprod. Reason: shielded primitives exist in stdlib but no stable dApp examples use them yet (see `docs/spikes/escrow-feasibility.md`).
+- **2026-07-19 (L1):** `closeTime` stored on drop but *not enforced in-circuit* yet — deadline guards (`blockTimeLt`) land at L3 alongside claim + expiry paths. Reason: keeps L1 minimal per P1 scope; primitive availability already verified (see `docs/spikes/circuit-time.md`).
+- **2026-07-19 (L1):** Single-drop-per-contract for L1 skeleton — no `drops: Map<DropId, …>` yet. Multi-drop support lands with L2/L3. Reason: keeps the L1 skeleton small enough to fully test the verdict machinery without paying map-syntax cost twice.
+- **2026-07-19 (L1):** Verdict is computed at `checkWin` (post-reveal), not at `placeBid`. The instant-verdict UX target from §3 is preserved at the frontend layer by having the winner call `checkWin` immediately once the reveal event lands. Reason: no known primitive gives a truly-blind verdict against a hash commitment without leaking the reserve to the bidder.
