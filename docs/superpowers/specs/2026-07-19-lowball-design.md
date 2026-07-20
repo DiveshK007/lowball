@@ -18,14 +18,17 @@ Provably-fair mystery drops: name-your-price gacha where the reserve price is co
 
 ## 3. Core loop
 
-1. **Drop created** (admin): item (digital collectible record), stock (1 of N), hidden reserve price. Only `hash(reserve, salt)` goes onchain, before any bid is possible.
-2. **Player bids:** opens drop page → connects Lace → submits sealed bid in tDUST. Bid amount is a private witness; escrow is shielded.
-3. **Instant verdict** (ZK circuit compares bid vs committed reserve):
-   - Bid ≥ reserve → **WIN at your price.** Item ownership recorded, escrow kept by house.
-   - Bid < reserve → **auto-refund.** No information revealed about how close the bid was (near-miss mystery = comeback hook).
-4. **Drop closes** (sold out or deadline): house reveals `(reserve, salt)`; contract verifies it matches the original commitment. Public receipts page shows the verification.
+1. **Drop created** (admin): item (digital collectible record), stock (1 of N), hidden reserve price, close time. Only `hash(reserve, salt)` goes onchain, before any bid is possible.
+2. **Player bids (sealed):** opens drop page → connects Lace → submits sealed bid. Bid amount is a private witness recorded as a commitment; no funds move at bid time (fallback funds path, §3.4/§10). Bids stay sealed for the whole window — nobody, including the house, learns any amount.
+3. **The Reveal (drop closes):** house reveals `(reserve, salt)`; contract verifies it matches the original commitment. This is the appointment moment — countdown on the drop page, everyone comes back for it.
+4. **Verdicts at reveal:** each bidder runs `checkWin` against the now-revealed reserve — proving bid ≥ reserve *without disclosing their amount*:
+   - Cleared the reserve → **WIN at your price** (still never shown publicly). Pay on `claimItem`; unpaid claims expire (`CLAIM_GRACE`) and stock returns.
+   - Under the reserve → nothing to do, nothing revealed. Losing amounts and near-misses stay sealed forever (comeback hook).
+5. **Receipts:** public page shows commitment → reveal verification for anyone.
 
-Rules: one active bid per wallet per drop; re-bid allowed after a refund; first-valid-bid-wins per unit of stock (no highest-bidder ranking in v1 — YAGNI).
+Rules: one bid per wallet per drop; if more bids clear the reserve than stock, **bid-order priority** (earlier sealed bids win — first-come spirit preserved). No highest-bidder ranking in v1 — YAGNI.
+
+> **Changed at L1** (was: instant verdict at bid time). A bidder-side circuit cannot compare against a hash commitment without knowing the preimage, so a truly-blind instant verdict isn't achievable — verdicts land at reveal. Product upside: the reveal becomes a shared suspense moment (blind-box mechanics). See §10.
 
 ## 4. Privacy model (README "privacy model" section, verbatim target)
 
@@ -101,4 +104,5 @@ Unit of growth = **the drop as content**. Post format: "🎰 Drop #N: [item]. Re
 - **2026-07-19 (L1):** Adopted spec §3.4 fallback funds path — `placeBid` records a bid commitment only; no shielded value moves at bid time. Shielded escrow deferred pending an L2 spike against Preprod. Reason: shielded primitives exist in stdlib but no stable dApp examples use them yet (see `docs/spikes/escrow-feasibility.md`).
 - **2026-07-19 (L1):** `closeTime` stored on drop but *not enforced in-circuit* yet — deadline guards (`blockTimeLt`) land at L3 alongside claim + expiry paths. Reason: keeps L1 minimal per P1 scope; primitive availability already verified (see `docs/spikes/circuit-time.md`).
 - **2026-07-19 (L1):** Single-drop-per-contract for L1 skeleton — no `drops: Map<DropId, …>` yet. Multi-drop support lands with L2/L3. Reason: keeps the L1 skeleton small enough to fully test the verdict machinery without paying map-syntax cost twice.
-- **2026-07-19 (L1):** Verdict is computed at `checkWin` (post-reveal), not at `placeBid`. The instant-verdict UX target from §3 is preserved at the frontend layer by having the winner call `checkWin` immediately once the reveal event lands. Reason: no known primitive gives a truly-blind verdict against a hash commitment without leaking the reserve to the bidder.
+- **2026-07-19 (L1):** Verdict is computed at `checkWin` (post-reveal), not at `placeBid`. Reason: no known primitive gives a truly-blind verdict against a hash commitment without leaking the reserve to the bidder. **Product consequence accepted:** §3 rewritten from instant-verdict to reveal-day verdicts — the reveal countdown becomes the core engagement moment (blind-box mechanics). Frontend calls `checkWin` the instant the reveal lands so verdicts feel immediate *at* the reveal.
+- **2026-07-19 (L1, spec):** Winner selection when multiple bids clear the reserve: bid-order priority while stock lasts (earlier sealed bid wins). Keeps first-come spirit; simplest to prove; no ranking.

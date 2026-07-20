@@ -58,7 +58,7 @@ Program L2 checklist in spec §7. Minimum 8 meaningful commits.
 Spec §3, §5, §6. Use writing-plans, then TDD.
 
 Scope (L3):
-1. Complete the loop: instant verdict, refund path (or pay-on-claim fallback), claimItem, close + revealReserve, /receipts/:dropId public verification page.
+1. Complete the loop per spec §3 (reveal-day verdicts): sealed bids → close + revealReserve → checkWin verdicts with bid-order priority → claimItem (pay-on-claim, CLAIM_GRACE expiry) → /receipts/:dropId public verification page. Reveal countdown on the drop page.
 2. Test suite ≥ the 6 cases in spec §6 (win, refund, reveal-tamper, stock exhaustion, double-claim, bid-after-close).
 3. GitHub Actions CI: compact compile + tests on every push. Badge in README.
 4. ops/ CLI: create-drop (reserve+salt generation, redundant preimage storage, commitment submit), close-and-reveal.
