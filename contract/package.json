@@ -7,12 +7,14 @@
     "compact": "compact compile src/lowball.compact src/managed/lowball",
     "compact:hello": "compact compile src/hello-world.compact src/managed/hello-world",
     "test": "vitest run",
-    "test:compile": "npm run compact && vitest run"
+    "test:compile": "npm run compact && vitest run",
+    "deploy:preprod": "tsx scripts/deploy.ts"
   },
   "devDependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.16.0",
     "@midnight-ntwrk/midnight-js-network-id": "^4.1.1",
     "@types/node": "^22.20.1",
+    "tsx": "^4.23.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   }
