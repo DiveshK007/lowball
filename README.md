@@ -8,6 +8,42 @@ Name-your-price gacha, single-player vs the house. Priceline × blind-box mania 
 
 The only things ever made public are the things that keep the house honest: the reserve commitment before bids open, and the reserve reveal (hash-verified) after close. Built for the Rise In "New Moon to Full" program — list primitive: Sealed-Bid Auction; category: Consumer focus.
 
+## Live Demo
+
+| | |
+|---|---|
+| **App** | _pending — Vercel URL lands here once the L2 deploy is live_ |
+| **Contract (Preprod)** | _pending — set `VITE_CONTRACT_ADDRESS` to the deploy output_ |
+
+Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preprod**, fund it at the [faucet](https://midnight-tmnight-preprod.nethermind.dev/), and run a local proof server on port 6300 (`docker start lowball-proof-server`). Browsing works without any of that; bidding does not.
+
+The 60-second walkthrough:
+
+1. Open the gallery, click **Genesis Envelope**.
+2. **Connect Lace** — the app checks the extension is present, on the right network, and answering.
+3. Type an amount and hit **Seal this bid**. The proof is built locally, Lace signs, the chain records a commitment.
+4. Scroll to the **side-by-side panel**: your amount on the left, the public ledger's view on the right. The right side never contains a number.
+5. After the house reveals, **Open your envelope** for the verdict.
+
+## Privacy Claim
+
+**A bid amount placed through LOWBALL is never disclosed to anyone — not to other bidders, not to the house, not to a block explorer — whether it wins or loses.**
+
+Concretely, for one bid:
+
+| Where | What exists there |
+|---|---|
+| Your device | the amount, your 32-byte bidder secret, the resulting commitment |
+| The ZK proof | a proof that *some* amount and secret hash to the published commitment |
+| The ledger | `latestBidCommitment` (a hash), `bidCount` (a number of bids) — no amount, ever |
+| The explorer | the transaction, its circuit, its commitment. No amount, no reserve pre-close |
+
+The mechanism is Compact's witness/ledger split: `bidAmount` and `bidderSecret` are **witnesses** — private inputs consumed inside the circuit — while `commitment`, `stock`, `closeTime`, `bidCount` and (post-close) `revealedReserve` are ledger fields. `disclose()` appears exactly twice in the contract: the winner's claim and the post-close reserve reveal. A losing verdict fails an in-circuit assert on the bidder's own machine, so a loss produces no transaction at all — nothing is published, including the fact that a verdict was run.
+
+Verify it yourself: place a bid, then open the contract on the explorer. `bidCount` increments; no amount appears anywhere. The app's side-by-side panel shows both views at the same instant.
+
+Scope, stated honestly at L2: bids are commitments, not escrowed funds — the shielded-escrow path is deferred (spec §10, `docs/spikes/escrow-feasibility.md`), so a winner pays on claim. `bidCount` is deliberately public. Transaction timing is observable; bid amounts are not.
+
 ## Repo layout
 
 - `contract/` — Compact contract sources and build artifacts (`managed/` git-ignored).
@@ -54,8 +90,16 @@ compact compile hello-world.compact managed/hello-world
 Web dev server:
 
 ```
-cd web && npm install && npm run dev
+cd web
+cp .env.example .env.local     # paste the deployed contract address into it
+npm install
+npm run sync:contract          # copy compiled contract + ZK keys out of contract/
+npm run dev
 ```
+
+`sync:contract` copies the generated TypeScript bindings into `web/src/lib/midnight/generated/` and the prover/verifier keys into `web/public/{keys,zkir}/`. Those copies are committed, because `contract/src/managed/` is git-ignored and the Vercel build has no Compact compiler — re-run it after any contract recompile.
+
+Deploying the web app: `vercel.json` at the repo root builds `web/` and serves `web/dist`, so a Vercel project pointed at the repo root needs no further configuration beyond the `VITE_*` environment variables from `.env.example`.
 
 Ops CLI (scaffold):
 
