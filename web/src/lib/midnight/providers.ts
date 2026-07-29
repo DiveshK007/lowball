@@ -12,9 +12,11 @@ import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-pri
 import { Transaction } from '@midnight-ntwrk/midnight-js-protocol/ledger'
 import type {
   FinalizedTransaction,
+  TransactionId,
+} from '@midnight-ntwrk/midnight-js-protocol/ledger'
+import type {
   MidnightProviders,
   PublicDataProvider,
-  TransactionId,
   UnboundTransaction,
 } from '@midnight-ntwrk/midnight-js-types'
 import { fromHex, toHex } from '@midnight-ntwrk/midnight-js-utils'
@@ -23,6 +25,11 @@ import { config } from '../../config'
 import { LowballError } from './errors'
 import type { LowballCircuitId } from './types'
 import type { LowballPrivateState } from './witnesses'
+
+// The indexer provider defaults its WebSocket to the `ws` package, which is a
+// no-op shim in the browser — subscriptions (deploy/tx watching) need the real
+// one passed in explicitly.
+const browserWebSocket = globalThis.WebSocket as never
 
 export const PRIVATE_STATE_ID = 'lowballPrivateState'
 export type LowballPrivateStateId = typeof PRIVATE_STATE_ID
@@ -44,7 +51,7 @@ const storagePasswordFor = (coinPublicKey: string): string =>
 
 /** Read-only chain access. Works with no wallet installed (receipts, gallery). */
 export const publicDataProvider = (): PublicDataProvider =>
-  indexerPublicDataProvider(config.indexerUri, config.indexerWsUri)
+  indexerPublicDataProvider(config.indexerUri, config.indexerWsUri, browserWebSocket)
 
 export const zkConfigProvider = (): FetchZkConfigProvider<LowballCircuitId> =>
   // Prover/verifier keys and ZKIR are served from this origin — see
@@ -109,6 +116,7 @@ export const buildProviders = async (
     publicDataProvider: indexerPublicDataProvider(
       walletConfig.indexerUri,
       walletConfig.indexerWsUri,
+      browserWebSocket,
     ),
     zkConfigProvider: zkConfig,
     proofProvider: httpClientProofProvider(proofServerUri, zkConfig),

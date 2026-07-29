@@ -1,122 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 
-function App() {
-  const [count, setCount] = useState(0)
+import { config, networkLabel } from './config'
+import { WalletProvider } from './lib/midnight'
+import { ConnectButton } from './features/wallet/ConnectButton'
+import { GalleryPage } from './app/GalleryPage'
+import { DropPage } from './app/DropPage'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+const Masthead = () => (
+  <header className="masthead">
+    <div className="wrap masthead__inner">
+      <Link to="/" className="wordmark">
+        LOW<span>BALL</span>
+      </Link>
+      <span className="pill">
+        <span className="dot" />
+        {networkLabel[config.networkId]}
+      </span>
+      <div className="masthead__spacer" />
+      <ConnectButton />
+    </div>
+  </header>
+)
 
-      <div className="ticks"></div>
+const Footer = () => (
+  <footer className="footer">
+    <div className="wrap">
+      Sealed-bid mystery drops on Midnight. The reserve is committed before bids
+      open and revealed after close, hash-verified onchain. Bids stay sealed
+      forever.{' '}
+      <a href={config.faucetUrl} target="_blank" rel="noreferrer">
+        Preprod faucet
+      </a>
+    </div>
+  </footer>
+)
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+const NotFound = () => (
+  <div className="center-note">
+    <h2>Nothing sealed here.</h2>
+    <Link className="btn btn--ghost" to="/">
+      Back to the gallery
+    </Link>
+  </div>
+)
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
+const App = () => (
+  <WalletProvider>
+    <BrowserRouter>
+      <div className="shell">
+        <Masthead />
+        <main>
+          <div className="wrap">
+            <Routes>
+              <Route path="/" element={<GalleryPage />} />
+              <Route path="/drop/:dropId" element={<DropPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    </BrowserRouter>
+  </WalletProvider>
+)
 
 export default App
