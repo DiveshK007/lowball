@@ -53,6 +53,34 @@ export const preprodConfig: NetworkConfig = {
   proofServer: "http://127.0.0.1:6300",
 };
 
+// Preview is a much younger chain than Preprod (~180k blocks vs ~1.9M), so its
+// dust-generation history — which the wallet must replay from genesis to sync —
+// is ~100x smaller. Deploying here syncs in minutes instead of hours.
+export const previewConfig: NetworkConfig = {
+  indexer: "https://indexer.preview.midnight.network/api/v3/graphql",
+  indexerWS: "wss://indexer.preview.midnight.network/api/v3/graphql/ws",
+  node: "https://rpc.preview.midnight.network",
+  proofServer: "http://127.0.0.1:6300",
+};
+
+export type NetworkName = "preprod" | "preview";
+
+const networkConfigs: Record<NetworkName, NetworkConfig> = {
+  preprod: preprodConfig,
+  preview: previewConfig,
+};
+
+// Select the target network from MIDNIGHT_NETWORK (default preprod). The seed
+// file is network-agnostic; only the derived address prefix differs.
+export function resolveNetwork(): { name: NetworkName; config: NetworkConfig } {
+  const name = (process.env.MIDNIGHT_NETWORK ?? "preprod") as NetworkName;
+  const config = networkConfigs[name];
+  if (!config) {
+    throw new Error(`Unknown MIDNIGHT_NETWORK "${name}" (use preprod|preview).`);
+  }
+  return { name, config };
+}
+
 export type WalletContext = {
   wallet: WalletFacade;
   shieldedSecretKeys: ledger.ZswapSecretKeys;
@@ -236,12 +264,13 @@ export function unshieldedBalanceOf(state: any): bigint {
 // --- Deploy ---------------------------------------------------------------
 
 /**
- * Deploy a compiled Compact contract to Preprod using the funded seed.
- * `contractClass` is the generated `Contract` class from
+ * Deploy a compiled Compact contract using the funded seed. Target network is
+ * chosen by MIDNIGHT_NETWORK (preprod|preview, default preprod) — see
+ * resolveNetwork(). `contractClass` is the generated `Contract` class from
  * `contract/src/managed/<name>/contract/index.js`.
  * `zkConfigPath` is the absolute path to the same `managed/<name>` dir.
  */
-export async function deployToPreprod<Ledger, PrivateState>(args: {
+export async function deployToNetwork<Ledger, PrivateState>(args: {
   name: string;
   seedPath: string;
   contractClass: new (witnesses: any) => any;
@@ -250,11 +279,12 @@ export async function deployToPreprod<Ledger, PrivateState>(args: {
   initialPrivateState: PrivateState;
   zkConfigPath: string;
 }): Promise<{ contractAddress: string; txId: string; blockHeight: bigint }> {
-  setNetworkId("preprod");
+  const { name: network, config } = resolveNetwork();
+  setNetworkId(network);
   const seed = readSeed(args.seedPath);
 
-  console.log(`Starting wallet + syncing to Preprod...`);
-  const ctx = await startWallet(preprodConfig, seed);
+  console.log(`Starting wallet + syncing to ${network}...`);
+  const ctx = await startWallet(config, seed);
   try {
     console.log(`Unshielded address: ${ctx.unshieldedAddress}`);
     const state = await waitForSync(ctx.wallet);
@@ -275,7 +305,7 @@ export async function deployToPreprod<Ledger, PrivateState>(args: {
     console.log(`Building midnight-js providers...`);
     const providers = await buildProviders(
       ctx,
-      preprodConfig,
+      config,
       args.privateStateId,
       args.zkConfigPath,
     );

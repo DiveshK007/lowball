@@ -21,14 +21,14 @@ import { fileURLToPath } from "node:url";
 import { Contract } from "../src/managed/lowball/contract/index.js";
 import { emptyLowballPrivateState, witnesses } from "../src/witnesses.js";
 // eslint-disable-next-line import/no-relative-parent-imports
-import { deployToPreprod } from "../../ops/src/wallet.js";
+import { deployToNetwork } from "../../ops/src/wallet.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const managedPath = resolve(here, "..", "src", "managed", "lowball");
 const seedPath = resolve(here, "..", "..", "ops", "vault", "preprod-seed");
 
 async function main() {
-  const result = await deployToPreprod({
+  const result = await deployToNetwork({
     name: "lowball",
     seedPath,
     contractClass: Contract,
