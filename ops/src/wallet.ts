@@ -184,11 +184,48 @@ export async function startWallet(
   };
 }
 
+// Set LOWBALL_SYNC_DEBUG=1 to log per-tick sync progress while a wallet
+// catches up to the network tip (quiet by default).
+const SYNC_DEBUG = process.env.LOWBALL_SYNC_DEBUG === "1";
+
+const logSyncProgress = (s: any) => {
+  if (!SYNC_DEBUG) return;
+  const fmt = (label: string, p: any) => {
+    if (!p) return `${label}=<none>`;
+    const done = typeof p.isStrictlyComplete === "function"
+      ? p.isStrictlyComplete()
+      : "?";
+    return `${label}[conn=${p.isConnected} applied=${p.appliedIndex}/${p.highestRelevantWalletIndex} complete=${done}]`;
+  };
+  console.log(
+    `  sync: synced=${s.isSynced} ` +
+      `${fmt("shielded", s.shielded?.state?.progress)} ` +
+      `${fmt("unshielded", s.unshielded?.progress)} ` +
+      `${fmt("dust", s.dust?.state?.progress)}`,
+  );
+};
+
+// Full sync: all three ledgers strictly complete. Required before building a
+// transaction (dust fees + shielded coins must be fully applied). Cold sync of
+// the dust ledger from genesis can take ~1-2h since sync state is in-memory.
 export const waitForSync = (wallet: WalletFacade) =>
   Rx.firstValueFrom(
     wallet.state().pipe(
       Rx.throttleTime(5_000),
+      Rx.tap(logSyncProgress),
       Rx.filter((s) => s.isSynced),
+    ),
+  );
+
+// Fast path for read-only funding checks: the tNight balance lives in the
+// unshielded ledger, which completes in seconds — no need to wait out the
+// slow shielded/dust cold sync just to confirm the wallet is funded.
+export const waitForUnshieldedSync = (wallet: WalletFacade) =>
+  Rx.firstValueFrom(
+    wallet.state().pipe(
+      Rx.throttleTime(5_000),
+      Rx.tap(logSyncProgress),
+      Rx.filter((s: any) => s.unshielded?.progress?.isStrictlyComplete?.()),
     ),
   );
 

@@ -14,7 +14,7 @@ import {
   readSeed,
   startWallet,
   unshieldedBalanceOf,
-  waitForSync,
+  waitForUnshieldedSync,
 } from "./wallet.js";
 
 const SEED_PATH = "vault/preprod-seed";
@@ -42,7 +42,7 @@ async function main() {
   console.log(`\nConnecting to Preprod (this can take ~10s)...`);
   const ctx = await startWallet(preprodConfig, seed);
   try {
-    const state = await waitForSync(ctx.wallet);
+    const state = await waitForUnshieldedSync(ctx.wallet);
     const balance = unshieldedBalanceOf(state);
     console.log(`Unshielded balance: ${balance.toLocaleString()} tNight`);
     if (balance === 0n) {
