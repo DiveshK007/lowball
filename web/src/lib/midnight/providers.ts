@@ -8,7 +8,6 @@ import type { ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api'
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider'
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider'
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider'
-import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider'
 import { Transaction } from '@midnight-ntwrk/midnight-js-protocol/ledger'
 import type {
   FinalizedTransaction,
@@ -23,6 +22,7 @@ import { fromHex, toHex } from '@midnight-ntwrk/midnight-js-utils'
 
 import { config } from '../../config'
 import { LowballError } from './errors'
+import { inMemoryPrivateStateProvider } from './private-state'
 import type { LowballCircuitId } from './types'
 import type { LowballPrivateState } from './witnesses'
 
@@ -39,15 +39,6 @@ export type LowballProviders = MidnightProviders<
   LowballPrivateStateId,
   LowballPrivateState
 >
-
-/**
- * Encryption password for the local private-state store. Derived from the
- * wallet's coin public key so it is stable per account and never typed by a
- * user, and shaped to satisfy the SDK's password policy (16+ chars, 3+
- * character classes, no long runs or sequences — hence the grouping).
- */
-const storagePasswordFor = (coinPublicKey: string): string =>
-  `Lowball!${coinPublicKey.slice(0, 24).replace(/(.{3})/g, '$1-')}`
 
 /** Read-only chain access. Works with no wallet installed (receipts, gallery). */
 export const publicDataProvider = (): PublicDataProvider =>
@@ -104,15 +95,10 @@ export const buildProviders = async (
   const coinPublicKey = addresses.shieldedCoinPublicKey
 
   const providers: LowballProviders = {
-    privateStateProvider: levelPrivateStateProvider<
+    privateStateProvider: inMemoryPrivateStateProvider<
       LowballPrivateStateId,
       LowballPrivateState
-    >({
-      privateStateStoreName: 'lowball-private-state',
-      signingKeyStoreName: 'lowball-signing-keys',
-      accountId: coinPublicKey,
-      privateStoragePasswordProvider: () => storagePasswordFor(coinPublicKey),
-    }),
+    >(),
     publicDataProvider: indexerPublicDataProvider(
       walletConfig.indexerUri,
       walletConfig.indexerWsUri,
