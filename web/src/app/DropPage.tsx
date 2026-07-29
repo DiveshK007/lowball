@@ -21,7 +21,7 @@ export const DropPage = () => {
   const drop = findDrop(dropId)
   const wallet = useWallet()
   const { state, loading, error, refresh } = useDropState(drop?.contractAddress ?? null)
-  const flow = useBidFlow(dropId, drop?.contractAddress ?? null)
+  const flow = useBidFlow(dropId, drop?.contractAddress ?? null, state)
 
   if (!drop) {
     return (
@@ -42,9 +42,11 @@ export const DropPage = () => {
         ? 'won'
         : flow.bid?.verdict === 'no-win'
           ? 'lost'
-          : flow.bid
-            ? 'sealed'
-            : 'empty'
+          : flow.bid?.verdict === 'pending'
+            ? 'proving'
+            : flow.bid
+              ? 'sealed'
+              : 'empty'
 
   const blockedReason =
     drop.contractAddress === null

@@ -5,7 +5,12 @@
 
 const KEY_PREFIX = 'lowball.bid.'
 
-export type BidVerdict = 'sealed' | 'win' | 'no-win'
+/**
+ * `pending` is the journal state from docs/architecture.md §5.2: written
+ * *before* the transaction is submitted, so a tab that dies mid-proof still
+ * has the secret needed to reconcile or retry.
+ */
+export type BidVerdict = 'pending' | 'sealed' | 'win' | 'no-win'
 
 export type StoredBid = {
   readonly dropId: string
@@ -13,6 +18,7 @@ export type StoredBid = {
   readonly amount: string
   readonly secretHex: string
   readonly commitmentHex: string
+  /** Empty until the submission comes back. */
   readonly txId: string
   readonly sealedAt: number
   readonly verdict: BidVerdict

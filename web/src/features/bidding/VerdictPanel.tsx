@@ -27,6 +27,55 @@ type Props = {
 }
 
 export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
+  if (bid.verdict === 'pending') {
+    return (
+      <div className="stack">
+        <div className="stat-row">
+          <div className="stat">
+            <div className="stat__label">Bid being sealed</div>
+            <div className="stat__value">
+              {formatDust(BigInt(bid.amount))} tDUST
+            </div>
+          </div>
+        </div>
+        {flow.sealing ? (
+          <p className="muted" style={{ margin: 0 }}>
+            Proving, signing, submitting. Your amount and secret are already
+            saved on this device, so closing this tab cannot lose them.
+          </p>
+        ) : (
+          <>
+            <p className="muted" style={{ margin: 0 }}>
+              This bid was written down but never confirmed — the tab closed, or
+              the submission failed. Retrying re-sends the same sealed amount, so
+              it cannot double-count: if it already landed, the drop's commitment
+              matches and this resolves itself on the next chain read.
+            </p>
+            <div className="row">
+              <button type="button" className="btn" onClick={flow.retry}>
+                Retry submission
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => downloadBackup(bid)}
+              >
+                Download backup
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={flow.discard}
+              >
+                Discard
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
   if (bid.verdict === 'win') {
     return (
       <div className="verdict verdict--win">

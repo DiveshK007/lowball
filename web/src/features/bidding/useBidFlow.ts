@@ -1,11 +1,15 @@
 // Orchestrates one drop's bid lifecycle: parse → seal → (reveal) → verdict,
 // keeping the local bid record in step with what the chain has seen.
+//
+// The record is journalled *before* submission (architecture §5.2). If the tab
+// dies during proving, the amount and secret survive, and the next load
+// reconciles against the drop's latest bid commitment instead of guessing.
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { parseDust } from '../../lib/format'
-import { usePlaceBid, useVerdict } from '../../lib/midnight'
-import type { LowballError } from '../../lib/midnight'
+import { bidCommitmentHex, usePlaceBid, useVerdict } from '../../lib/midnight'
+import type { DropState, LowballError } from '../../lib/midnight'
 import {
   forgetBid,
   hexToBytes,
@@ -25,17 +29,60 @@ export type BidFlow = {
   readonly opening: boolean
   readonly error: LowballError | null
   readonly seal: () => void
+  readonly retry: () => void
   readonly openEnvelope: () => void
   readonly discard: () => void
 }
 
-export const useBidFlow = (dropId: string, address: string | null): BidFlow => {
+export const useBidFlow = (
+  dropId: string,
+  address: string | null,
+  state: DropState | null,
+): BidFlow => {
   const [bid, setBid] = useState<StoredBid | null>(() => loadBid(dropId))
   const [amountText, setAmountText] = useState('')
   const [inputError, setInputError] = useState<string | null>(null)
 
   const place = usePlaceBid(address)
   const verdict = useVerdict(address)
+
+  // A journalled bid whose commitment is already the drop's latest one did
+  // reach the chain — the confirmation just never got back to us.
+  useEffect(() => {
+    if (!bid || bid.verdict !== 'pending' || !state) return
+    if (state.latestBidCommitmentHex !== bid.commitmentHex) return
+    const settled: StoredBid = { ...bid, verdict: 'sealed' }
+    saveBid(settled)
+    setBid(settled)
+  }, [bid, state])
+
+  const submit = useCallback(
+    (amount: bigint, secretHex: string) => {
+      const journalled: StoredBid = {
+        dropId,
+        amount: amount.toString(),
+        secretHex,
+        commitmentHex: bidCommitmentHex(amount, hexToBytes(secretHex)),
+        txId: '',
+        sealedAt: Date.now(),
+        verdict: 'pending',
+      }
+      saveBid(journalled)
+      setBid(journalled)
+
+      void place.seal(amount, hexToBytes(secretHex)).then((receipt) => {
+        if (!receipt) return
+        const sealed: StoredBid = {
+          ...journalled,
+          txId: receipt.txId,
+          verdict: 'sealed',
+        }
+        saveBid(sealed)
+        setBid(sealed)
+      })
+    },
+    [dropId, place],
+  )
 
   const seal = useCallback(() => {
     const parsed = parseDust(amountText)
@@ -44,23 +91,14 @@ export const useBidFlow = (dropId: string, address: string | null): BidFlow => {
       return
     }
     setInputError(null)
+    submit(parsed.value, randomSecretHex())
+  }, [amountText, submit])
 
-    const secretHex = randomSecretHex()
-    void place.seal(parsed.value, hexToBytes(secretHex)).then((receipt) => {
-      if (!receipt) return
-      const stored: StoredBid = {
-        dropId,
-        amount: parsed.value.toString(),
-        secretHex,
-        commitmentHex: receipt.commitmentHex,
-        txId: receipt.txId,
-        sealedAt: Date.now(),
-        verdict: 'sealed',
-      }
-      saveBid(stored)
-      setBid(stored)
-    })
-  }, [amountText, dropId, place])
+  /** Re-submit a journalled bid — same amount, same secret, same commitment. */
+  const retry = useCallback(() => {
+    if (!bid) return
+    submit(BigInt(bid.amount), bid.secretHex)
+  }, [bid, submit])
 
   const openEnvelope = useCallback(() => {
     if (!bid) return
@@ -91,6 +129,7 @@ export const useBidFlow = (dropId: string, address: string | null): BidFlow => {
     opening: verdict.phase === 'opening',
     error: place.error ?? verdict.error,
     seal,
+    retry,
     openEnvelope,
     discard,
   }
