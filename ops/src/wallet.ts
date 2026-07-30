@@ -261,6 +261,53 @@ export function unshieldedBalanceOf(state: any): bigint {
   return state.unshielded.balances[unshieldedToken().raw] ?? 0n;
 }
 
+/**
+ * Fees on Midnight are paid in dust, which NIGHT only generates once its UTXOs
+ * are registered. A freshly funded wallet has NIGHT but no dust, so before any
+ * fee-bearing tx we register unregistered NIGHT UTXOs (the registration tx pays
+ * its own fee from back-dated dust — see the ledger dust spec) and wait for a
+ * spendable dust coin to appear (~1-2 min).
+ */
+async function ensureDustRegistered(ctx: WalletContext): Promise<void> {
+  const hasSpendableDust = (s: any) =>
+    (s.dust?.availableCoins?.length ?? 0) > 0 && s.dust.balance(new Date()) > 0n;
+
+  const state: any = await Rx.firstValueFrom(
+    ctx.wallet.state().pipe(Rx.filter((s: any) => s.isSynced)),
+  );
+  if (hasSpendableDust(state)) {
+    console.log(`Dust already available: ${state.dust.balance(new Date())}`);
+    return;
+  }
+
+  const unregistered = state.unshielded.availableCoins.filter(
+    (c: any) => c.meta?.registeredForDustGeneration === false,
+  );
+  if (unregistered.length === 0) {
+    console.log(`All NIGHT already registered; waiting for dust to generate...`);
+  } else {
+    console.log(`Registering ${unregistered.length} NIGHT UTXO(s) for dust...`);
+    const recipe = await ctx.wallet.registerNightUtxosForDustGeneration(
+      unregistered,
+      ctx.unshieldedKeystore.getPublicKey(),
+      (payload) => ctx.unshieldedKeystore.signData(payload),
+    );
+    const finalized = await ctx.wallet.finalizeRecipe(recipe);
+    const txId = await ctx.wallet.submitTransaction(finalized);
+    console.log(`Dust registration submitted: ${txId}`);
+  }
+
+  console.log(`Waiting for dust to generate (1-2 min)...`);
+  await Rx.firstValueFrom(
+    ctx.wallet.state().pipe(
+      Rx.throttleTime(5_000),
+      Rx.tap(logSyncProgress),
+      Rx.filter((s: any) => s.isSynced && hasSpendableDust(s)),
+    ),
+  );
+  console.log(`Dust ready.`);
+}
+
 // --- Deploy ---------------------------------------------------------------
 
 /**
@@ -295,6 +342,8 @@ export async function deployToNetwork<Ledger, PrivateState>(args: {
         "Wallet has 0 tNight. Fund it at https://midnight.network/test-faucet and retry.",
       );
     }
+
+    await ensureDustRegistered(ctx);
 
     console.log(`Pre-compiling contract with ZK assets...`);
     const compiled = CompiledContract.make(args.name, args.contractClass).pipe(
