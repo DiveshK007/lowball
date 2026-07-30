@@ -233,6 +233,23 @@ const logSyncProgress = (s: any) => {
   );
 };
 
+// Transient node/indexer blips surface as a thrown Wallet.Sync error that would
+// otherwise abort a long in-memory sync and lose all progress. Re-subscribe on
+// error (the wallet keeps its internal sync state) with a bounded backoff.
+// Placed before the completion filter so each throttled progress tick resets the
+// counter — we tolerate many transient errors as long as we keep making progress.
+const retryTransientSync = <T>() =>
+  Rx.retry<T>({
+    count: 12,
+    resetOnSuccess: true,
+    delay: (err: any, n: number) => {
+      console.log(
+        `  sync stream error (retry ${n}/12): ${err?._tag ?? err?.message ?? err}`,
+      );
+      return Rx.timer(10_000);
+    },
+  });
+
 // Full sync: all three ledgers strictly complete. Required before building a
 // transaction (dust fees + shielded coins must be fully applied). Cold sync of
 // the dust ledger from genesis can take ~1-2h since sync state is in-memory.
@@ -241,6 +258,7 @@ export const waitForSync = (wallet: WalletFacade) =>
     wallet.state().pipe(
       Rx.throttleTime(5_000),
       Rx.tap(logSyncProgress),
+      retryTransientSync(),
       Rx.filter((s) => s.isSynced),
     ),
   );
@@ -253,6 +271,7 @@ export const waitForUnshieldedSync = (wallet: WalletFacade) =>
     wallet.state().pipe(
       Rx.throttleTime(5_000),
       Rx.tap(logSyncProgress),
+      retryTransientSync(),
       Rx.filter((s: any) => s.unshielded?.progress?.isStrictlyComplete?.()),
     ),
   );
@@ -273,7 +292,7 @@ async function ensureDustRegistered(ctx: WalletContext): Promise<void> {
     (s.dust?.availableCoins?.length ?? 0) > 0 && s.dust.balance(new Date()) > 0n;
 
   const state: any = await Rx.firstValueFrom(
-    ctx.wallet.state().pipe(Rx.filter((s: any) => s.isSynced)),
+    ctx.wallet.state().pipe(retryTransientSync(), Rx.filter((s: any) => s.isSynced)),
   );
   if (hasSpendableDust(state)) {
     console.log(`Dust already available: ${state.dust.balance(new Date())}`);
@@ -302,6 +321,7 @@ async function ensureDustRegistered(ctx: WalletContext): Promise<void> {
     ctx.wallet.state().pipe(
       Rx.throttleTime(5_000),
       Rx.tap(logSyncProgress),
+      retryTransientSync(),
       Rx.filter((s: any) => s.isSynced && hasSpendableDust(s)),
     ),
   );
