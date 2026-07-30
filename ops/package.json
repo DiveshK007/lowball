@@ -18,16 +18,20 @@
     "tsx": "^4.23.1",
     "typescript": "^5.5.4"
   },
+  "overrides": {
+    "@midnight-ntwrk/ledger-v8": "8.0.3",
+    "@midnight-ntwrk/wallet-sdk-prover-client": "1.2.1"
+  },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "0.15.0",
-    "@midnight-ntwrk/ledger-v8": "^8.0.3",
+    "@midnight-ntwrk/ledger-v8": "8.0.3",
     "@midnight-ntwrk/midnight-js": "4.0.4",
     "@midnight-ntwrk/midnight-js-http-client-proof-provider": "4.0.4",
     "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.0.4",
     "@midnight-ntwrk/midnight-js-level-private-state-provider": "4.0.4",
     "@midnight-ntwrk/midnight-js-network-id": "4.0.4",
     "@midnight-ntwrk/midnight-js-node-zk-config-provider": "4.0.4",
-    "@midnight-ntwrk/wallet-sdk-address-format": "^3.1.2",
+    "@midnight-ntwrk/wallet-sdk-address-format": "3.1.0",
     "@midnight-ntwrk/wallet-sdk-dust-wallet": "3.0.0",
     "@midnight-ntwrk/wallet-sdk-facade": "3.0.0",
     "@midnight-ntwrk/wallet-sdk-hd": "3.0.0",
