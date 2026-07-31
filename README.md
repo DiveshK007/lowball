@@ -12,10 +12,10 @@ The only things ever made public are the things that keep the house honest: the 
 
 | | |
 |---|---|
-| **App** | _pending — Vercel URL lands here once the L2 deploy is live_ |
-| **Contract (Preprod)** | _pending — set `VITE_CONTRACT_ADDRESS` to the deploy output_ |
+| **App** | **https://lowball-orpin.vercel.app** |
+| **Contract (Preview)** | [`e5f6d470…f7c4fc11`](https://lowball-orpin.vercel.app/drop/drop-001) — live drop, reads Preview chain state |
 
-Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preprod**, fund it at the [faucet](https://midnight-tmnight-preprod.nethermind.dev/), and run a local proof server on port 6300 (`docker start lowball-proof-server`). Browsing works without any of that; bidding does not.
+Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preview**, and fund it at the [Preview faucet](https://faucet.preview.midnight.network/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
 
 The 60-second walkthrough:
 
