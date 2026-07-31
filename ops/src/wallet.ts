@@ -366,8 +366,11 @@ export async function deployToNetwork<Ledger, PrivateState>(args: {
     await ensureDustRegistered(ctx);
 
     console.log(`Pre-compiling contract with ZK assets...`);
+    // LOWBALL declares witnesses (bidAmountWitness, …), so install the real
+    // witness functions — withVacantWitnesses is only for witness-less
+    // contracts and yields a Contract the constructor rejects.
     const compiled = CompiledContract.make(args.name, args.contractClass).pipe(
-      CompiledContract.withVacantWitnesses,
+      CompiledContract.withWitnesses(args.witnesses),
       CompiledContract.withCompiledFileAssets(args.zkConfigPath),
     );
 

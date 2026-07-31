@@ -23,3 +23,4 @@ ops/**/*.preimage
 
 # OS
 .DS_Store
+ops/managed/

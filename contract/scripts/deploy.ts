@@ -11,20 +11,26 @@
 //
 // Usage: `npm run deploy:preprod` from contract/.
 //
-// The heavy midnight-js + wallet-sdk imports live in ops/src/wallet.ts so
-// contract/ doesn't need to duplicate the dep tree. This wrapper only
-// imports the generated Contract + witnesses from contract/'s own tree.
+// The heavy midnight-js + wallet-sdk imports live in ops/src/wallet.ts. Deploy
+// tx assembly checks the class identity of onchain-runtime types (e.g.
+// ContractMaintenanceAuthority), which fails if the managed Contract and
+// compact-js resolve two physical copies of @midnight-ntwrk/onchain-runtime-v3.
+// So we import the Contract from ops's own copy of the compiled managed dir
+// (synced via `npm --prefix ../ops run sync:contract`) — then Contract and
+// compact-js share ops's single runtime tree. `witnesses` is safe to import
+// from contract/ (its @midnight imports are type-only, erased at runtime).
 
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Contract } from "../src/managed/lowball/contract/index.js";
+// eslint-disable-next-line import/no-relative-parent-imports
+import { Contract } from "../../ops/managed/lowball/contract/index.js";
 import { emptyLowballPrivateState, witnesses } from "../src/witnesses.js";
 // eslint-disable-next-line import/no-relative-parent-imports
 import { deployToNetwork } from "../../ops/src/wallet.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const managedPath = resolve(here, "..", "src", "managed", "lowball");
+const managedPath = resolve(here, "..", "..", "ops", "managed", "lowball");
 const seedPath = resolve(here, "..", "..", "ops", "vault", "preprod-seed");
 
 async function main() {
