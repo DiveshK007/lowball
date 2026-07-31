@@ -12,7 +12,10 @@ import {
   getNetworkId,
   setNetworkId,
 } from "@midnight-ntwrk/midnight-js-network-id";
-import { deployContract } from "@midnight-ntwrk/midnight-js/contracts";
+import {
+  deployContract,
+  findDeployedContract,
+} from "@midnight-ntwrk/midnight-js/contracts";
 import { assertIsContractAddress, toHex } from "@midnight-ntwrk/midnight-js/utils";
 import { httpClientProofProvider } from "@midnight-ntwrk/midnight-js-http-client-proof-provider";
 import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
@@ -399,6 +402,63 @@ export async function deployToNetwork<Ledger, PrivateState>(args: {
     console.log(`  tx:          ${txId}`);
     console.log(`  block:       ${blockHeight}`);
     return { contractAddress, txId, blockHeight };
+  } finally {
+    await ctx.wallet.stop();
+  }
+}
+
+/**
+ * Call a circuit on an already-deployed contract with the house seed. Network,
+ * sync, dust and providers are handled exactly as for a deploy; `invoke`
+ * receives the found contract and runs one `callTx.<circuit>(...)`.
+ */
+export async function callOnNetwork<PrivateState>(args: {
+  name: string;
+  contractAddress: string;
+  seedPath: string;
+  contractClass: new (witnesses: any) => any;
+  witnesses: any;
+  privateStateId: string;
+  initialPrivateState: PrivateState;
+  zkConfigPath: string;
+  invoke: (contract: any) => Promise<{ public: { txId: any; blockHeight?: any } }>;
+}): Promise<{ txId: string; blockHeight: bigint }> {
+  const { name: network, config } = resolveNetwork();
+  setNetworkId(network);
+  const seed = readSeed(args.seedPath);
+
+  console.log(`Starting wallet + syncing to ${network}...`);
+  const ctx = await startWallet(config, seed);
+  try {
+    await waitForSync(ctx.wallet);
+    await ensureDustRegistered(ctx);
+
+    const compiled = CompiledContract.make(args.name, args.contractClass).pipe(
+      CompiledContract.withWitnesses(args.witnesses),
+      CompiledContract.withCompiledFileAssets(args.zkConfigPath),
+    );
+    const providers = await buildProviders(
+      ctx,
+      config,
+      args.privateStateId,
+      args.zkConfigPath,
+    );
+
+    console.log(`Finding deployed contract ${args.contractAddress}...`);
+    const contract = await findDeployedContract(providers, {
+      contractAddress: args.contractAddress,
+      compiledContract: compiled,
+      privateStateId: args.privateStateId,
+      initialPrivateState: args.initialPrivateState,
+    });
+
+    console.log(`Submitting circuit call...`);
+    const result = await args.invoke(contract);
+    const txId = String(result.public.txId);
+    const blockHeight = BigInt(result.public.blockHeight ?? 0);
+    console.log(`  tx:    ${txId}`);
+    console.log(`  block: ${blockHeight}`);
+    return { txId, blockHeight };
   } finally {
     await ctx.wallet.stop();
   }
