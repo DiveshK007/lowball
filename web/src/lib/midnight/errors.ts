@@ -11,6 +11,7 @@ export type LowballErrorCode =
   | 'network-mismatch'
   | 'contract-not-configured'
   | 'contract-not-found'
+  | 'insufficient-dust'
   | 'proof-server-unreachable'
   | 'drop-not-open'
   | 'bid-below-reserve'

@@ -208,6 +208,30 @@ export const usePlaceBid = (address: string | null): PlaceBidResult => {
         setPhase('failed')
         return null
       }
+
+      // Preflight: fees are paid in DUST, generated from registered NIGHT. A
+      // wallet with zero DUST only fails at submit — after a slow proof and a
+      // signing prompt — so catch it up front with an actionable message.
+      try {
+        const { balance } = await api.getDustBalance()
+        if (balance <= 0n) {
+          setError(
+            new LowballError(
+              'insufficient-dust',
+              'Your wallet has no DUST to pay the network fee yet.',
+              {
+                hint: 'In Lace, register your NIGHT for DUST generation and wait for DUST to accrue, then seal again. Your amount stays typed in.',
+              },
+            ),
+          )
+          setPhase('failed')
+          return null
+        }
+      } catch {
+        // If the wallet cannot report a DUST balance, fall through to the
+        // normal path rather than blocking a bid on a preflight quirk.
+      }
+
       setPhase('proving')
       setError(null)
       try {
