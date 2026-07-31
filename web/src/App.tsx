@@ -29,7 +29,7 @@ const Footer = () => (
       open and revealed after close, hash-verified onchain. Bids stay sealed
       forever.{' '}
       <a href={config.faucetUrl} target="_blank" rel="noreferrer">
-        Preprod faucet
+        {networkLabel[config.networkId]} faucet
       </a>
     </div>
   </footer>

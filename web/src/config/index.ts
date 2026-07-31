@@ -6,8 +6,8 @@
 
 export type NetworkId = 'preprod' | 'preview' | 'mainnet' | 'undeployed'
 
-const PREPROD_INDEXER = 'https://indexer.preprod.midnight.network/api/v3/graphql'
-const PREPROD_INDEXER_WS = 'wss://indexer.preprod.midnight.network/api/v3/graphql/ws'
+const PREVIEW_INDEXER = 'https://indexer.preview.midnight.network/api/v3/graphql'
+const PREVIEW_INDEXER_WS = 'wss://indexer.preview.midnight.network/api/v3/graphql/ws'
 
 const env = import.meta.env
 
@@ -19,24 +19,49 @@ const trimmed = (value: string | undefined): string | null => {
 /** The connector API versions this app is built against (semver range). */
 export const COMPATIBLE_CONNECTOR_API_VERSION = '4.x'
 
+const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preview') as NetworkId
+
+/**
+ * The deployed LOWBALL contract on Preview (L1, block 215085). Baked as the
+ * default so a fresh clone or a Vercel build with no env vars still points at
+ * the live drop; VITE_CONTRACT_ADDRESS overrides it for other deploys.
+ */
+const PREVIEW_CONTRACT =
+  'e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11'
+
+/** Per-network faucet + explorer roots. L1/L2 run on Preview (see README). */
+const FAUCET: Record<NetworkId, string> = {
+  preview: 'https://faucet.preview.midnight.network/',
+  preprod: 'https://midnight-tmnight-preprod.nethermind.dev/',
+  mainnet: '',
+  undeployed: 'https://faucet.preview.midnight.network/',
+}
+
+const EXPLORER: Record<NetworkId, string> = {
+  preview: 'https://explorer.preview.midnight.network',
+  preprod: 'https://explorer.preprod.midnight.network',
+  mainnet: 'https://explorer.midnight.network',
+  undeployed: 'https://explorer.preview.midnight.network',
+}
+
 export const config = {
-  networkId: (trimmed(env.VITE_NETWORK_ID) ?? 'preprod') as NetworkId,
+  networkId,
 
   /**
    * Address of the deployed LOWBALL contract. `null` until the deploy lands —
    * the UI stays browsable and every bid affordance explains why it is off.
    */
-  contractAddress: trimmed(env.VITE_CONTRACT_ADDRESS),
+  contractAddress: trimmed(env.VITE_CONTRACT_ADDRESS) ?? PREVIEW_CONTRACT,
 
-  indexerUri: trimmed(env.VITE_INDEXER_URI) ?? PREPROD_INDEXER,
-  indexerWsUri: trimmed(env.VITE_INDEXER_WS_URI) ?? PREPROD_INDEXER_WS,
+  indexerUri: trimmed(env.VITE_INDEXER_URI) ?? PREVIEW_INDEXER,
+  indexerWsUri: trimmed(env.VITE_INDEXER_WS_URI) ?? PREVIEW_INDEXER_WS,
 
   /** Used only when the connected wallet reports no prover of its own. */
   proofServerUri: trimmed(env.VITE_PROOF_SERVER_URI) ?? 'http://127.0.0.1:6300',
 
   laceInstallUrl:
     'https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk',
-  faucetUrl: 'https://midnight-tmnight-preprod.nethermind.dev/',
+  faucetUrl: FAUCET[networkId],
 } as const
 
 /** Human label for the target network, for banners and the footer. */
@@ -51,8 +76,8 @@ export const isContractConfigured = (): boolean => config.contractAddress !== nu
 
 /** Block explorer link for a contract address on the configured network. */
 export const explorerContractUrl = (address: string): string =>
-  `https://explorer.preprod.midnight.network/contracts/${address}`
+  `${EXPLORER[config.networkId]}/contracts/${address}`
 
 /** Block explorer link for a transaction on the configured network. */
 export const explorerTxUrl = (txId: string): string =>
-  `https://explorer.preprod.midnight.network/transactions/${txId}`
+  `${EXPLORER[config.networkId]}/transactions/${txId}`
