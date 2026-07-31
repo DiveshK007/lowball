@@ -79,8 +79,9 @@ export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
   if (bid.verdict === 'win') {
     return (
       <div className="verdict verdict--win">
+        <div className="verdict__stamp">Cleared the reserve</div>
         <h2>You won it at your price.</h2>
-        <p className="muted">
+        <p>
           The drop is yours at {formatDust(BigInt(bid.amount))} tDUST. That
           number is still not public anywhere.
         </p>
@@ -97,9 +98,10 @@ export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
 
   if (bid.verdict === 'no-win') {
     return (
-      <div className="verdict">
-        <h2>Under the reserve.</h2>
-        <p className="muted">
+      <div className="verdict verdict--loss">
+        <div className="verdict__stamp">Under the reserve</div>
+        <h2>Sealed, and it stays that way.</h2>
+        <p>
           Nothing was submitted and nothing was disclosed — not your amount, not
           how close it was. The next drop is a fresh guess.
         </p>
@@ -111,34 +113,28 @@ export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
 
   return (
     <div className="stack">
-      <div className="stat-row">
-        <div className="stat">
-          <div className="stat__label">Your sealed bid</div>
-          <div className="stat__value">
-            {formatDust(BigInt(bid.amount))} tDUST
-            <span className="faint" style={{ fontSize: '0.78rem' }}>
-              {' '}
-              (this device only)
-            </span>
-          </div>
-        </div>
-        <div className="stat">
-          <div className="stat__label">
-            {revealed ? 'Reserve revealed' : 'Reveal in'}
-          </div>
-          <div className="stat__value">
-            {revealed ? (
-              state?.revealedReserve !== null && state?.revealedReserve !== undefined ? (
-                `${formatDust(state.revealedReserve)} tDUST`
-              ) : (
-                '✓'
-              )
-            ) : (
-              <Countdown to={state?.closeTime ?? null} />
-            )}
-          </div>
+      <div className="stat">
+        <div className="stat__label">Your sealed bid</div>
+        <div className="stat__value">
+          {formatDust(BigInt(bid.amount))} tDUST{' '}
+          <span className="faint" style={{ fontSize: '0.78rem' }}>
+            (this device only)
+          </span>
         </div>
       </div>
+
+      {revealed ? (
+        <div className="reveal-clock reveal-clock--revealed">
+          <span className="reveal-clock__label">Reserve revealed</span>
+          <span className="reveal-clock__value">
+            {state?.revealedReserve !== null && state?.revealedReserve !== undefined
+              ? `${formatDust(state.revealedReserve)} tDUST`
+              : '✓'}
+          </span>
+        </div>
+      ) : (
+        <Countdown variant="clock" to={state?.closeTime ?? null} />
+      )}
 
       <div className="mono">commitment {shortHex(bid.commitmentHex, 12)}</div>
 

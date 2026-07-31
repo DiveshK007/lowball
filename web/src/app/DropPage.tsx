@@ -131,17 +131,18 @@ export const DropPage = () => {
           <div className="stat-row">
             <Stat label="Stock" value={state?.stock ?? '—'} />
             <Stat label="Sealed bids" value={state?.bidCount ?? '—'} />
-            <Stat
-              label={state?.phase === 'revealed' ? 'Reserve' : 'Closes in'}
-              value={
-                state?.phase === 'revealed' && state.revealedReserve !== null ? (
-                  `${formatDust(state.revealedReserve)} tDUST`
-                ) : (
-                  <Countdown to={state?.closeTime ?? null} />
-                )
-              }
-            />
           </div>
+
+          {state?.phase === 'revealed' && state.revealedReserve !== null ? (
+            <div className="reveal-clock reveal-clock--revealed">
+              <span className="reveal-clock__label">Reserve</span>
+              <span className="reveal-clock__value">
+                {formatDust(state.revealedReserve)} tDUST
+              </span>
+            </div>
+          ) : (
+            <Countdown variant="clock" label="Closes in" to={state?.closeTime ?? null} />
+          )}
 
           <div className="stack" style={{ gap: '0.4rem' }}>
             <span className="stat__label">Reserve commitment</span>
