@@ -25,6 +25,15 @@ The 60-second walkthrough:
 4. Scroll to the **side-by-side panel**: your amount on the left, the public ledger's view on the right. The right side never contains a number.
 5. After the house reveals, **Open your envelope** for the verdict.
 
+## Contract Address
+
+| Network | Address |
+|---|---|
+| Preview | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
+| Preprod | — (not deployed; see [`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)) |
+
+L1 deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085). Preview's dust-generation history syncs in minutes versus Preprod's ~1.35M-event genesis replay. Full evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md).
+
 ## Privacy Claim
 
 **A bid amount placed through LOWBALL is never disclosed to anyone — not to other bidders, not to the house, not to a block explorer — whether it wins or loses.**
@@ -43,6 +52,30 @@ The mechanism is Compact's witness/ledger split: `bidAmount` and `bidderSecret` 
 Verify it yourself: place a bid, then open the contract on the explorer. `bidCount` increments; no amount appears anywhere. The app's side-by-side panel shows both views at the same instant.
 
 Scope, stated honestly at L2: bids are commitments, not escrowed funds — the shielded-escrow path is deferred (spec §10, `docs/spikes/escrow-feasibility.md`), so a winner pays on claim. `bidCount` is deliberately public. Transaction timing is observable; bid amounts are not.
+
+## Privacy Model
+
+Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC / PRIVATE / PROVED split:
+
+**PUBLIC** — on the ledger, readable by anyone (explorer, other players, the house):
+- Reserve **commitment** (a hash) published before bids open
+- Stock remaining, close time, item metadata reference
+- `bidCount` — how many bids exist (never the amounts)
+- After close: the revealed `reserve` and its hash-match proof
+- Winner claim records (item ownership)
+
+**PRIVATE** — Compact **witnesses**; consumed inside the circuit, never written to the ledger, never leaving the bidder's device:
+- `bidAmount` — every bid, winning or losing
+- `bidderSecret` — the 32-byte claim secret
+- Which wallet actually bid vs. merely browsed
+- The house's `reserve` and `salt`, before the post-close reveal
+
+**PROVED without revealing** — the ZK circuit asserts these hold while disclosing neither operand:
+- The bid was compared against the committed reserve and a verdict issued — **without revealing the bid or the reserve**
+- The revealed `(reserve, salt)` hashes to the original commitment — proving the house never moved the goalposts
+- A claimant knows the `bidderSecret` behind a winning claim — proving the right to claim without exposing the secret
+
+`disclose()` appears exactly twice in the contract: the winner's claim and the post-close reserve reveal. Everything else about a bid stays private, forever.
 
 ## Repo layout
 
