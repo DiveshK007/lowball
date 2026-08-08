@@ -3,8 +3,9 @@
 // contract/scripts/deploy.ts can stay a thin wrapper.
 
 import { Buffer } from "node:buffer";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import * as ledger from "@midnight-ntwrk/ledger-v8";
 import { unshieldedToken } from "@midnight-ntwrk/ledger-v8";
@@ -90,7 +91,52 @@ export type WalletContext = {
   dustSecretKey: ledger.DustSecretKey;
   unshieldedKeystore: UnshieldedKeystore;
   unshieldedAddress: string;
+  // Sub-wallet handles, kept so their synced state can be serialized to the
+  // per-network cache (persistWalletCache) — this is what lets a later run
+  // skip the multi-hour genesis replay on Preprod.
+  shieldedWallet: { serializeState(): Promise<unknown> };
+  unshieldedWallet: { serializeState(): Promise<unknown> };
+  dustWallet: { serializeState(): Promise<string> };
 };
+
+// --- Synced-state cache (skip genesis replay on subsequent runs) ----------
+
+const VAULT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..", "vault");
+
+/** Per-network cache of the three sub-wallets' serialized synced state. */
+const walletCachePath = (): string =>
+  resolve(VAULT_DIR, `wallet-cache-${resolveNetwork().name}.json`);
+
+type WalletCache = { shielded: unknown; unshielded: unknown; dust: string };
+
+const readWalletCache = (): WalletCache | null => {
+  const path = walletCachePath();
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, "utf-8")) as WalletCache;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Serialize the fully-synced sub-wallets to the per-network cache. A later
+ * start() restores from here and resumes syncing from the checkpoint instead
+ * of replaying the chain from genesis. Call only after a full waitForSync.
+ */
+export async function persistWalletCache(ctx: WalletContext): Promise<void> {
+  const [shielded, unshielded, dust] = await Promise.all([
+    ctx.shieldedWallet.serializeState(),
+    ctx.unshieldedWallet.serializeState(),
+    ctx.dustWallet.serializeState(),
+  ]);
+  mkdirSync(VAULT_DIR, { recursive: true });
+  const path = walletCachePath();
+  writeFileSync(path, JSON.stringify({ shielded, unshielded, dust }), {
+    mode: 0o600,
+  });
+  console.log(`Wallet state cached → ${path} (future syncs resume from here)`);
+}
 
 export function readSeed(path: string): string {
   const raw = readFileSync(resolve(path), "utf-8").trim();
@@ -191,27 +237,60 @@ export async function startWallet(
     ...buildDustConfig(cfg),
   };
 
-  const wallet = await WalletFacade.init({
-    configuration: walletConfig,
-    shielded: (c) => ShieldedWallet(c).startWithSecretKeys(shieldedSecretKeys),
-    unshielded: (c) =>
-      UnshieldedWallet(c).startWithPublicKey(
-        PublicKey.fromKeyStore(unshieldedKeystore),
-      ),
-    dust: (c) =>
-      DustWallet(c).startWithSecretKey(
-        dustSecretKey,
-        ledger.LedgerParameters.initialParameters().dust,
-      ),
-  });
-  await wallet.start(shieldedSecretKeys, dustSecretKey);
+  // Restore from the synced-state cache when present; a corrupt/incompatible
+  // cache falls back to a fresh (genesis) start rather than failing the run.
+  const build = async (cache: WalletCache | null) => {
+    let shieldedWallet: any;
+    let unshieldedWallet: any;
+    let dustWallet: any;
+    const wallet = await WalletFacade.init({
+      configuration: walletConfig,
+      shielded: (c) =>
+        (shieldedWallet = cache
+          ? ShieldedWallet(c).restore(cache.shielded as any)
+          : ShieldedWallet(c).startWithSecretKeys(shieldedSecretKeys)),
+      unshielded: (c) =>
+        (unshieldedWallet = cache
+          ? UnshieldedWallet(c).restore(cache.unshielded as any)
+          : UnshieldedWallet(c).startWithPublicKey(
+              PublicKey.fromKeyStore(unshieldedKeystore),
+            )),
+      dust: (c) =>
+        (dustWallet = cache
+          ? DustWallet(c).restore(cache.dust)
+          : DustWallet(c).startWithSecretKey(
+              dustSecretKey,
+              ledger.LedgerParameters.initialParameters().dust,
+            )),
+    });
+    await wallet.start(shieldedSecretKeys, dustSecretKey);
+    return { wallet, shieldedWallet, unshieldedWallet, dustWallet };
+  };
+
+  const cache = readWalletCache();
+  if (cache) console.log(`Restoring wallet from cache (skips genesis replay)...`);
+  let built;
+  try {
+    built = await build(cache);
+  } catch (e) {
+    if (!cache) throw e;
+    console.warn(
+      `Cache restore failed (${e instanceof Error ? e.message : e}); ` +
+        `discarding it and syncing from genesis.`,
+    );
+    rmSync(walletCachePath(), { force: true });
+    built = await build(null);
+  }
 
   return {
-    wallet,
+    wallet: built.wallet,
     shieldedSecretKeys,
     dustSecretKey,
     unshieldedKeystore,
     unshieldedAddress: unshieldedKeystore.getBech32Address().toString(),
+    shieldedWallet: built.shieldedWallet,
+    unshieldedWallet: built.unshieldedWallet,
+    dustWallet: built.dustWallet,
   };
 }
 
@@ -358,6 +437,7 @@ export async function deployToNetwork<Ledger, PrivateState>(args: {
   try {
     console.log(`Unshielded address: ${ctx.unshieldedAddress}`);
     const state = await waitForSync(ctx.wallet);
+    await persistWalletCache(ctx);
     const balance = unshieldedBalanceOf(state);
     console.log(`Unshielded balance: ${balance.toLocaleString()} tNight`);
     if (balance === 0n) {
@@ -431,6 +511,7 @@ export async function callOnNetwork<PrivateState>(args: {
   const ctx = await startWallet(config, seed);
   try {
     await waitForSync(ctx.wallet);
+    await persistWalletCache(ctx);
     await ensureDustRegistered(ctx);
 
     const compiled = CompiledContract.make(args.name, args.contractClass).pipe(
