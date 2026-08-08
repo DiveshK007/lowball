@@ -1,5 +1,9 @@
 # LOWBALL 🎰
 
+[![CI](https://github.com/DiveshK007/lowball/actions/workflows/ci.yml/badge.svg)](https://github.com/DiveshK007/lowball/actions/workflows/ci.yml)
+
+**Live demo → https://lowball-orpin.vercel.app**
+
 Provably-fair mystery drops on [Midnight](https://midnight.network). A drop's reserve price is committed onchain before any bid. Bids are sealed forever. Bid at or above the hidden reserve and you win at your price; below, instant refund and nobody ever learns how close you were.
 
 ## Initial product idea
