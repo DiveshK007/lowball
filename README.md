@@ -34,9 +34,9 @@ The 60-second walkthrough:
 | Network | Address |
 |---|---|
 | Preview | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
-| Preprod | — (not deployed; see [`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)) |
+| Preprod | _deploy in progress — see [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md)_ |
 
-L1 deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085). Preview's dust-generation history syncs in minutes versus Preprod's ~1.35M-event genesis replay. Full evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md).
+L1 first deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085); Preview's dust history syncs in minutes versus Preprod's ~1.35M-event genesis replay ([`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)). The Preprod deploy runs from a 32–64 GB cloud VM per [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md); the wallet-state cache it produces makes later Preprod deploys skip the genesis replay. Full L1 evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md).
 
 ## Privacy Claim
 
