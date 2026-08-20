@@ -97,15 +97,9 @@ export const DropPage = () => {
         </p>
       </header>
 
-      <div
-        style={{
-          display: 'grid',
-          gap: '1.25rem',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          alignItems: 'start',
-        }}
-      >
-        <section className="card ritual">
+      <div className="drop-layout">
+        <section className="tray">
+          <div className="card__core ritual">
           <Envelope state={envelopeState} />
 
           {flow.bid ? (
@@ -124,6 +118,7 @@ export const DropPage = () => {
               onConnect={wallet.connect}
             />
           )}
+          </div>
         </section>
 
         <section className="card stack">
