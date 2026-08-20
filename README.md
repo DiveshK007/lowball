@@ -18,6 +18,7 @@ The only things ever made public are the things that keep the house honest: the 
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
 | **Contract (Preview)** | [`e5f6d470…f7c4fc11`](https://lowball-orpin.vercel.app/drop/drop-001) — live drop, reads Preview chain state |
+| **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preview**, and fund it at the [Preview faucet](https://faucet.preview.midnight.network/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
 
@@ -28,6 +29,7 @@ The 60-second walkthrough:
 3. Type an amount and hit **Seal this bid**. The proof is built locally, Lace signs, the chain records a commitment.
 4. Scroll to the **side-by-side panel**: your amount on the left, the public ledger's view on the right. The right side never contains a number.
 5. After the house reveals, **Open your envelope** for the verdict.
+6. Open **[public receipts](https://lowball-orpin.vercel.app/receipts/drop-001)** — no wallet, no connection. It lays out the three public facts in the order the chain recorded them (reserve sealed → bids counted → reserve revealed) and lets you paste the salt to **recompute the commitment in your own browser**. Don't trust the house; recompute the hash. The maths is unit-tested against a commitment the chain already accepted (`web/src/lib/midnight/hashes.test.ts`).
 
 ## Contract Address
 
@@ -165,6 +167,10 @@ Even the house cannot see bids pre-verdict, so the house cannot selectively acce
 - [Design spec](docs/superpowers/specs/2026-07-19-lowball-design.md)
 - [Architecture](docs/architecture.md)
 - [Prompt pack (per-level)](docs/prompts.md)
+- [Traction engine — X formats + drop calendar](docs/traction.md)
+- [Preprod deploy from a cloud VM](docs/preprod-deploy-cloud.md)
+- [Spikes](docs/spikes/) — escrow feasibility, in-circuit time, Preprod sync memory ceiling
+- [Submissions evidence](docs/submissions/) — per-level screenshots and logs
 
 ## Program roadmap
 
