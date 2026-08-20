@@ -5,7 +5,7 @@
 export { LowballError, isLowballError } from './errors'
 export type { LowballErrorCode } from './errors'
 
-export { bidCommitmentHex } from './client'
+export { bidCommitmentHex, reserveCommitmentHex } from './hashes'
 
 export {
   WalletProvider,

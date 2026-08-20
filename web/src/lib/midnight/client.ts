@@ -86,9 +86,9 @@ export const readDropState = async (
   return decode(Lowball.ledger(state.data))
 }
 
-/** The commitment a given (amount, secret) pair produces — computed locally. */
-export const bidCommitmentHex = (amount: bigint, secret: Uint8Array): string =>
-  toHex(Lowball.pureCircuits.bidHash(amount, secret))
+import { bidCommitmentHex } from './hashes'
+
+export { bidCommitmentHex, reserveCommitmentHex } from './hashes'
 
 const connect = async (
   api: ConnectedAPI,
