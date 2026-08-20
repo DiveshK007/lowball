@@ -6,7 +6,7 @@
 
 Provably-fair mystery drops on [Midnight](https://midnight.network). A drop's reserve price is committed onchain before any bid. Bids are sealed forever. Bid at or above the hidden reserve and you win at your price; below, instant refund and nobody ever learns how close you were.
 
-## Initial product idea
+## What This Does (initial product idea)
 
 Name-your-price gacha, single-player vs the house. Priceline × blind-box mania × degen flex content. Each drop is one item (or 1-of-N stock) with a hidden reserve committed onchain before bids open. Players sealed-bid in tDUST from Lace; a ZK circuit compares the bid to the committed reserve and issues an instant verdict — win at your price, or auto-refund with no near-miss information leaked. When a drop closes, the house reveals `(reserve, salt)` and the contract verifies it matches the original commitment; a public receipts page shows the proof.
 
@@ -85,6 +85,56 @@ Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC /
 - A claimant knows the `bidderSecret` behind a winning claim — proving the right to claim without exposing the secret
 
 `disclose()` appears exactly twice in the contract: the winner's claim and the post-close reserve reveal. Everything else about a bid stays private, forever.
+
+## Tech Stack
+
+| Layer | What |
+|---|---|
+| Contract | Compact (`compact` 0.5.x / compiler 0.31.x), compiled to `contract/src/managed/` |
+| Chain | Midnight — Preview today, Preprod pending ([runbook](docs/preprod-deploy-cloud.md)) |
+| dApp | React 19 + TypeScript + Vite, Midnight.js SDK, DApp Connector API (Lace) |
+| Proving | Local proof server in Docker (`midnightntwrk/proof-server`, port 6300) |
+| House ops | Node 22 + TypeScript CLI (`ops/`) — `create-drop`, `close-and-reveal` |
+| Tests / CI | Vitest (contract + web), GitHub Actions on every push and PR |
+| Hosting | Vercel (static; no backend — the chain is the backend) |
+
+## Prerequisites
+
+- **Node.js v22** (pinned by `.nvmrc`)
+- **Docker Desktop** — runs the local proof server
+- **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)** set to **Preview**, funded from the [Preview faucet](https://faucet.preview.midnight.network/)
+- tDUST for fees: register your tNIGHT for **DUST generation** in Lace and let it accrue (NIGHT does not pay fees directly)
+- **Compact compiler** — only needed to recompile the contract (see Setup)
+
+## Run Tests
+
+```
+npm test --prefix contract   # 6 contract tests (circuits, state, reveal tamper)
+npm test --prefix web        # 15 web tests (formatting + commitment hashes)
+```
+
+The web suite includes `web/src/lib/midnight/hashes.test.ts`, which asserts the
+receipts page reproduces a commitment the chain has **already accepted** — so the
+verification maths cannot silently drift from the contract's.
+
+## CI/CD
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to
+`main` and on every pull request, in two jobs:
+
+| Job | Steps |
+|---|---|
+| `compile + test contract` | checkout → Node 22 → install Compact compiler → `npm install` → `compact compile` → `vitest run` |
+| `build + test web` | checkout → Node 22 → `npm install` → `vitest run` → production `vite build` |
+
+Because CI compiles the Compact source on a clean runner, a green badge also
+proves the committed contract still compiles with the pinned toolchain — not just
+that the tests pass. Status badge is at the top of this file.
+
+## Product Proposal
+
+See **[PROPOSAL.md](PROPOSAL.md)** — the product, why Midnight specifically, the
+full public/private data model, and an honest mainnet-feasibility assessment.
 
 ## Repo layout
 
