@@ -1,63 +1,61 @@
-/* LOWBALL — "Sealed Wax": an auction house after hours.
+/* LOWBALL — "Ice & Petrol".
  *
- * The world is a museum at night: warm bitumen dark, parchment type, a single
- * gilt hairline. Saturated colour is spent in exactly one place — sealing-wax
- * red at the reveal moment (countdown, verdict). Everything else is quiet.
+ * A verification instrument, not a storefront. Cool light ground, slate ink,
+ * geometric grotesk set tight, everything data-bearing in mono. One signal
+ * colour — deep petrol — spent only where the chain reveals something.
  *
- * Surfaces are machined, not flat: nested bezels, inset highlights, tinted
- * shadows that carry the ground's hue, and a fixed film-grain overlay so the
- * page reads as physical stock rather than a rectangle of CSS.
+ * Structure is deliberately asymmetric: a floating island nav detached from the
+ * top, a hero whose type bleeds past the container, and a bento of unequal
+ * tiles instead of equal card columns. Surfaces are trays holding cores.
  */
 
 :root {
-  /* ground — warm black, never #000 */
-  --bitumen: #14100e;
-  --bitumen-2: #1b1614; /* raised surface */
-  --bitumen-3: #221c19; /* inner core of a bezel */
-  --bitumen-4: #2a2320; /* hover surface */
+  /* ground */
+  --ice: #f4f6f8;
+  --ice-2: #eceff2; /* recessed */
+  --paper: #ffffff; /* tile core */
 
-  /* ink on that ground */
-  --parchment: #ede6d8;
-  --parchment-2: #cfc5b4;
-  --ash: #8c8579;
-  --ash-2: #6a645a;
+  /* ink */
+  --slate: #1a2024;
+  --slate-2: #39434a;
+  --steel: #6b7780;
+  --steel-2: #9aa4ac;
 
-  /* the one accent — reveal only */
-  --wax: #b7263a;
-  --wax-bright: #d62f46;
-  --wax-deep: #7d1626;
-  /* used once, as a hairline */
-  --gilt: #c9a227;
+  /* the one signal — reveal only */
+  --petrol: #00636b;
+  --petrol-bright: #00818c;
+  --petrol-deep: #01454b;
+  --petrol-wash: #e2eef0;
 
-  /* hairlines carry the parchment hue, never pure white */
-  --hairline: rgb(237 230 216 / 9%);
-  --hairline-2: rgb(237 230 216 / 16%);
+  /* structure */
+  --line: #dfe4e8;
+  --line-2: #cdd5da;
 
-  /* shadows are tinted with the ground, not black */
-  --shade-1: 0 1px 0 rgb(0 0 0 / 40%);
-  --shade-2: 0 18px 40px -24px rgb(8 5 4 / 90%);
-  --shade-3: 0 40px 90px -50px rgb(8 5 4 / 100%);
-  --inset-hi: inset 0 1px 0 rgb(237 230 216 / 7%);
+  /* shadows carry the ground's cool hue, never black */
+  --shade-1: 0 1px 2px rgb(26 32 36 / 6%);
+  --shade-2: 0 12px 28px -18px rgb(26 32 36 / 28%);
+  --shade-3: 0 40px 80px -44px rgb(26 32 36 / 38%);
+  --inset-hi: inset 0 1px 0 rgb(255 255 255 / 90%);
 
-  --radius-s: 8px;
-  --radius: 14px;
-  --radius-l: 22px;
-  --radius-xl: 30px;
+  --r-s: 8px;
+  --r: 14px;
+  --r-l: 20px;
+  --r-xl: 28px;
 
-  --display: 'Bodoni Moda', 'Didot', 'Times New Roman', serif;
-  --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --display: 'Space Grotesk', 'Archivo', system-ui, sans-serif;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* one easing for everything — weighted, never linear/ease-in-out */
+  /* one weighted curve; springier variant for presses */
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --dur: 420ms;
-  --dur-slow: 800ms;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur: 380ms;
+  --dur-slow: 760ms;
 
-  /* z-scale: systemic layers only, no arbitrary values */
   --z-nav: 40;
   --z-grain: 60;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -76,35 +74,40 @@ body,
 
 body {
   margin: 0;
-  background: var(--bitumen);
-  color: var(--parchment);
+  background: var(--ice);
+  color: var(--slate);
   font-family: var(--sans);
   font-size: 16px;
-  line-height: 1.65;
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
-/* Film grain: fixed, pointer-events-none, never attached to a scroller. */
-body::after {
+/* Blueprint grid — fixed, faint, pointer-events-none. Breaks digital flatness
+   without the "flat vector" sterility, and reads as drafting paper. */
+body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: var(--z-grain);
+  z-index: 0;
   pointer-events: none;
-  opacity: 0.032;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 78%);
 }
 
 a {
-  color: var(--parchment);
+  color: var(--slate);
   text-underline-offset: 3px;
-  text-decoration-color: var(--ash-2);
+  text-decoration-color: var(--steel-2);
   transition: color var(--dur) var(--ease), text-decoration-color var(--dur) var(--ease);
 }
 
 a:hover {
-  text-decoration-color: var(--parchment);
+  color: var(--petrol);
+  text-decoration-color: var(--petrol);
 }
 
 h1,
@@ -112,9 +115,9 @@ h2,
 h3 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 500;
-  line-height: 1.02;
-  letter-spacing: -0.015em;
+  font-weight: 600;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
@@ -123,24 +126,22 @@ p {
 }
 
 :focus-visible {
-  outline: 2px solid var(--gilt);
+  outline: 2px solid var(--petrol);
   outline-offset: 3px;
   border-radius: 3px;
 }
 
-/* Keyboard users land here first (Vercel guideline: skip link). */
 .skip-link {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 100;
   padding: 0.7rem 1.1rem;
-  background: var(--bitumen-3);
-  color: var(--parchment);
-  border: 1px solid var(--hairline-2);
-  border-radius: var(--radius-s);
+  background: var(--slate);
+  color: var(--ice);
+  border-radius: var(--r-s);
   font-family: var(--mono);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .skip-link:focus {
@@ -154,41 +155,50 @@ p {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  position: relative;
+  z-index: 1;
 }
 
 .wrap {
-  width: min(1180px, 100% - 3rem);
+  width: min(1240px, 100% - 3rem);
   margin-inline: auto;
 }
 
+/* Island nav: a floating pill, detached from the top edge. */
 .masthead {
   position: sticky;
   top: 0;
   z-index: var(--z-nav);
-  background: color-mix(in srgb, var(--bitumen) 78%, transparent);
-  backdrop-filter: blur(14px) saturate(140%);
-  border-bottom: 1px solid var(--hairline);
+  padding-top: 1.15rem;
+  pointer-events: none;
 }
 
 .masthead__inner {
+  pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  padding-block: 1.15rem;
+  gap: 0.9rem;
+  width: min(1240px, 100% - 3rem);
+  margin-inline: auto;
+  padding: 0.6rem 0.7rem 0.6rem 1.25rem;
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--inset-hi), var(--shade-2);
 }
 
 .wordmark {
   font-family: var(--display);
-  font-size: 1.32rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   text-decoration: none;
-  color: var(--parchment);
+  color: var(--slate);
 }
 
 .wordmark span {
-  /* the gilt hairline, used once in the whole design */
-  color: var(--gilt);
+  color: var(--petrol);
 }
 
 .masthead__spacer {
@@ -197,24 +207,24 @@ p {
 
 .footer {
   margin-top: auto;
-  padding-block: 4rem 5rem;
-  color: var(--ash-2);
+  padding-block: 4.5rem 4rem;
+  color: var(--steel);
   font-size: 0.84rem;
   line-height: 1.75;
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--line);
 }
 
 .footer a {
-  color: var(--ash);
+  color: var(--slate-2);
 }
 
 main {
-  padding-block: 5rem 4rem;
+  padding-block: 3.5rem 4rem;
 }
 
 .stack {
   display: grid;
-  gap: 1.6rem;
+  gap: 1.5rem;
 }
 
 .row {
@@ -224,10 +234,15 @@ main {
   flex-wrap: wrap;
 }
 
-/* Staggered entry — driven by IntersectionObserver, transform/opacity only. */
+/* --------------------------------------------------------- motion ------ */
+
+/* Entry reveal: rise + settle. Deliberately opacity/transform only — a
+   clip-path on the hidden state collapses the element's intersection area to
+   zero, so IntersectionObserver can never fire and the content is stuck
+   invisible forever. Learned that the hard way. */
 .reveal {
   opacity: 0;
-  transform: translate3d(0, 22px, 0);
+  transform: translate3d(0, 24px, 0) scale(0.995);
   transition:
     opacity var(--dur-slow) var(--ease),
     transform var(--dur-slow) var(--ease);
@@ -235,7 +250,17 @@ main {
 
 .reveal--in {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  transform: none;
+}
+
+/* Page-load sequence — the shell arrives before its contents. */
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+.masthead__inner {
+  animation: rise var(--dur-slow) var(--ease) both;
 }
 
 /* ---------------------------------------------------------- primitives -- */
@@ -243,30 +268,31 @@ main {
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.28rem 0.7rem;
-  border: 1px solid var(--hairline-2);
+  gap: 0.42rem;
+  padding: 0.26rem 0.66rem;
+  border: 1px solid var(--line-2);
   border-radius: 999px;
-  background: var(--bitumen-2);
-  box-shadow: var(--inset-hi);
-  color: var(--parchment-2);
+  background: var(--paper);
+  color: var(--slate-2);
   font-family: var(--mono);
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .pill--live {
-  color: #86c9a4;
+  color: var(--petrol);
+  border-color: color-mix(in srgb, var(--petrol) 34%, var(--line));
+  background: var(--petrol-wash);
 }
 
 .pill--revealed {
-  color: var(--gilt);
+  color: var(--slate);
 }
 
 .pill--off {
-  color: var(--ash-2);
+  color: var(--steel-2);
 }
 
 .dot {
@@ -277,119 +303,166 @@ main {
 }
 
 .pill--live .dot {
-  animation: pulse-dot 2.4s var(--ease) infinite;
+  animation: pulse-dot 2.2s var(--ease) infinite;
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.25; }
+  50% { opacity: 0.2; }
 }
 
-/* Buttons press like physical objects: scale down, never change size. */
+/* Magnetic button: presses physically, nested icon drifts on hover. */
 .btn {
+  --btn-bg: var(--paper);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
-  padding: 0.7rem 1.25rem;
-  border: 1px solid var(--hairline-2);
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem 0.6rem 1.15rem;
+  border: 1px solid var(--line-2);
   border-radius: 999px;
-  background: var(--bitumen-3);
+  background: var(--btn-bg);
   box-shadow: var(--inset-hi), var(--shade-1);
-  color: var(--parchment);
+  color: var(--slate);
   font-family: var(--sans);
   font-weight: 500;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   cursor: pointer;
   transition:
     background var(--dur) var(--ease),
     border-color var(--dur) var(--ease),
-    transform var(--dur) var(--ease),
-    opacity var(--dur) var(--ease);
+    box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease-spring);
+}
+
+/* the button-in-button trailing disc */
+.btn::after {
+  content: '↗';
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--ice-2);
+  color: var(--slate-2);
+  font-size: 0.72rem;
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--bitumen-4);
-  border-color: var(--hairline-2);
+  border-color: var(--slate-2);
+  box-shadow: var(--inset-hi), var(--shade-2);
   transform: translate3d(0, -1px, 0);
 }
 
+.btn:hover:not(:disabled)::after {
+  transform: translate3d(2px, -2px, 0) scale(1.06);
+}
+
 .btn:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(0.975);
 }
 
 .btn:disabled {
-  opacity: 0.38;
+  opacity: 0.42;
   cursor: not-allowed;
 }
 
+/* text-only variants drop the disc */
 .btn--ghost {
+  padding-inline: 1.1rem;
   background: transparent;
   box-shadow: none;
-  color: var(--parchment-2);
+  color: var(--slate-2);
+}
+
+.btn--ghost::after {
+  display: none;
 }
 
 .btn--ghost:hover:not(:disabled) {
-  background: var(--bitumen-2);
-  color: var(--parchment);
+  background: var(--paper);
+  color: var(--slate);
 }
 
-/* The seal button — wax, and only here. */
+/* the commit action — petrol, and only here */
 .btn--gold {
-  background: var(--wax);
-  border-color: var(--wax-bright);
+  background: var(--petrol);
+  border-color: var(--petrol-deep);
   color: #fff;
-  box-shadow: var(--inset-hi), 0 12px 30px -16px rgb(183 38 58 / 80%);
+  box-shadow: var(--inset-hi), 0 12px 26px -16px rgb(0 99 107 / 70%);
+}
+
+.btn--gold::after {
+  background: rgb(255 255 255 / 18%);
+  color: #fff;
 }
 
 .btn--gold:hover:not(:disabled) {
-  background: var(--wax-bright);
+  background: var(--petrol-bright);
+  border-color: var(--petrol-deep);
 }
 
 .btn--wide {
   width: 100%;
-  padding-block: 0.95rem;
-  font-size: 1rem;
+  padding-block: 0.9rem;
+  font-size: 0.98rem;
 }
 
-/* Double bezel: a tray (border + tinted shade) holding an inner core. */
 .card {
-  background:
-    linear-gradient(180deg, var(--bitumen-3), var(--bitumen-2));
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-l);
-  padding: 1.9rem;
-  box-shadow: var(--inset-hi), var(--shade-2);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  padding: 1.7rem;
+  box-shadow: var(--inset-hi), var(--shade-1);
+}
+
+/* Tray + core, opt-in: a recessed frame holding a raised plate. Used where
+   depth carries meaning (the ritual), not on every surface. */
+.tray {
+  background: var(--ice-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 6px;
+  box-shadow: inset 0 1px 2px rgb(26 32 36 / 6%);
+}
+
+.tray > .card__core,
+.card__core {
+  padding: 1.6rem;
+  border-radius: calc(var(--r-xl) - 6px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--inset-hi), var(--shade-1);
 }
 
 .muted {
-  color: var(--parchment-2);
+  color: var(--slate-2);
 }
 
 .faint {
-  color: var(--ash);
+  color: var(--steel);
 }
 
 .mono {
   font-family: var(--mono);
-  font-size: 0.79rem;
+  font-size: 0.78rem;
   word-break: break-all;
-  color: var(--ash);
+  color: var(--steel);
 }
 
 a.mono {
-  color: var(--parchment-2);
-  text-decoration-color: var(--ash-2);
+  color: var(--slate-2);
 }
 
 .eyebrow {
   font-family: var(--mono);
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   font-weight: 500;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--steel);
 }
 
 /* -------------------------------------------------------------- banner -- */
@@ -398,251 +471,314 @@ a.mono {
   display: flex;
   gap: 0.9rem;
   align-items: flex-start;
-  padding: 1.05rem 1.25rem;
-  border: 1px solid var(--hairline);
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--line);
   border-left-width: 2px;
-  border-radius: var(--radius);
-  background: var(--bitumen-2);
-  box-shadow: var(--inset-hi);
+  border-radius: var(--r);
+  background: var(--paper);
+  box-shadow: var(--shade-1);
   font-size: 0.9rem;
 }
 
-.banner--warn {
-  border-left-color: var(--gilt);
-}
+.banner--warn { border-left-color: var(--petrol); }
+.banner--error { border-left-color: #b3261e; }
+.banner--info { border-left-color: var(--steel-2); }
 
-.banner--error {
-  border-left-color: var(--wax);
-}
-
-.banner--info {
-  border-left-color: var(--ash);
-}
-
-.banner__body {
-  flex: 1;
-  min-width: 0;
-}
-
-.banner__title {
-  font-weight: 600;
-}
-
-.banner__hint {
-  color: var(--parchment-2);
-  font-size: 0.85rem;
-}
+.banner__body { flex: 1; min-width: 0; }
+.banner__title { font-weight: 600; }
+.banner__hint { color: var(--slate-2); font-size: 0.85rem; }
 
 /* --------------------------------------------------------------- hero -- */
+/* Off-centre, type bleeding past the container's left edge. */
 
 .hero {
   display: grid;
-  gap: 1.5rem;
-  padding-block: 3rem 5rem;
-  max-width: 54rem;
+  gap: 1.4rem;
+  padding-block: 3.5rem 4rem;
+  max-width: 58rem;
 }
 
 .hero h1 {
-  font-size: clamp(3.2rem, 9vw, 6rem);
-  line-height: 0.96;
-  letter-spacing: -0.025em;
+  font-size: clamp(3rem, 8.5vw, 6.4rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  margin-left: -0.055em; /* optical bleed: the cap aligns, not the box */
 }
 
-/* the single gilt rule under the headline */
 .hero__rule {
-  width: 96px;
-  height: 1px;
-  background: var(--gilt);
-  opacity: 0.75;
+  width: 120px;
+  height: 2px;
+  background: var(--petrol);
 }
 
 .hero p {
   margin: 0;
-  color: var(--parchment-2);
-  font-size: 1.12rem;
-  max-width: 42rem;
+  color: var(--slate-2);
+  font-size: 1.1rem;
+  max-width: 40rem;
+}
+
+/* -------------------------------------------------------- bento grid -- */
+/* Unequal tiles. Never three equal columns. */
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.bento__tile {
+  grid-column: span 2;
+  display: flex;
+}
+
+.bento__tile > * {
+  width: 100%;
+}
+
+/* the live drop dominates */
+.bento__tile--feature { grid-column: span 4; grid-row: span 2; }
+.bento__tile--wide { grid-column: span 4; }
+.bento__tile--tall { grid-column: span 2; grid-row: span 2; }
+
+/* an information tile: quiet, mono, no card chrome */
+.tile {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--paper);
+  box-shadow: var(--shade-1);
+  height: 100%;
+}
+
+.tile--sunk {
+  background: var(--ice-2);
+  box-shadow: none;
+}
+
+.tile--signal {
+  background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
+  border-color: var(--petrol-deep);
+  color: #fff;
+  box-shadow: 0 20px 44px -28px rgb(0 99 107 / 80%);
+}
+
+.tile--signal .eyebrow,
+.tile--signal .tile__note { color: rgb(255 255 255 / 74%); }
+
+.tile__figure {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(2rem, 4vw, 2.9rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile__note { color: var(--steel); font-size: 0.86rem; margin: 0; }
+
+.tile__steps {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.tile__steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 1.6rem 1fr;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--slate-2);
+}
+
+.tile__steps li::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--petrol);
+  padding-top: 0.18rem;
 }
 
 /* -------------------------------------------------------------- drops -- */
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
 }
 
 .drop-card {
   display: grid;
-  gap: 1.2rem;
+  gap: 1.1rem;
   text-decoration: none;
   color: inherit;
+  height: 100%;
   transition:
     border-color var(--dur) var(--ease),
     transform var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease);
 }
 
-.drop-card:hover {
-  transform: translate3d(0, -3px, 0);
-  border-color: var(--hairline-2);
-  box-shadow: var(--inset-hi), var(--shade-3);
+/* the feature drop tile fills its bento cell */
+.bento__tile--feature .drop-card {
+  padding: 1.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--paper);
+  box-shadow: var(--shade-1);
+  align-content: start;
 }
 
-/* inner core of the bezel — the plate the item sits on */
+.drop-card:hover {
+  transform: translate3d(0, -3px, 0);
+  border-color: var(--slate-2);
+  box-shadow: var(--shade-3);
+}
+
 .drop-card__art {
   display: grid;
   place-items: center;
-  aspect-ratio: 5 / 3;
-  border-radius: var(--radius);
-  font-size: 3rem;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r);
+  font-size: 3.2rem;
   background:
-    radial-gradient(120% 120% at 50% 0%, rgb(237 230 216 / 4%), transparent 70%),
-    var(--bitumen);
-  border: 1px solid var(--hairline);
-  box-shadow: inset 0 1px 0 rgb(237 230 216 / 4%);
+    linear-gradient(to right, var(--line) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px) 0 0 / 22px 22px,
+    var(--ice-2);
+  border: 1px solid var(--line);
 }
 
-.stat-row {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.stat {
-  display: grid;
-  gap: 0.25rem;
-  min-width: 0;
-}
+.stat-row { display: flex; gap: 1.9rem; flex-wrap: wrap; }
+.stat { display: grid; gap: 0.22rem; min-width: 0; }
 
 .stat__label {
   font-family: var(--mono);
-  font-size: 0.64rem;
+  font-size: 0.63rem;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ash-2);
+  color: var(--steel);
 }
 
 .stat__value {
   font-family: var(--mono);
-  font-size: 1.05rem;
+  font-size: 1.04rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--parchment);
+  color: var(--slate);
+}
+
+/* ------------------------------------------------------- drop page ----- */
+/* Asymmetric: the ritual is wider than the ledger beside it. */
+
+.drop-layout {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
 }
 
 /* ------------------------------------------------------------ envelope -- */
 
-.ritual {
-  display: grid;
-  gap: 1.7rem;
-}
+.ritual { display: grid; gap: 1.5rem; }
 
 .envelope {
   position: relative;
   display: grid;
   place-items: center;
-  aspect-ratio: 3 / 2;
-  border-radius: var(--radius);
-  border: 1px solid var(--hairline);
+  aspect-ratio: 16 / 10;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
   background:
-    radial-gradient(130% 100% at 50% 0%, rgb(237 230 216 / 5%), transparent 70%),
-    var(--bitumen);
-  box-shadow: inset 0 1px 0 rgb(237 230 216 / 5%);
+    linear-gradient(to right, var(--line) 1px, transparent 1px) 0 0 / 30px 30px,
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px) 0 0 / 30px 30px,
+    var(--ice-2);
   overflow: hidden;
   transition: background var(--dur-slow) var(--ease), border-color var(--dur-slow) var(--ease);
 }
 
-/* the flap */
 .envelope::after {
   content: '';
   position: absolute;
   inset: 0 0 auto;
   height: 54%;
-  background: linear-gradient(180deg, rgb(237 230 216 / 5%), transparent);
+  background: linear-gradient(180deg, rgb(26 32 36 / 5%), transparent);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--line-2);
   transform-origin: top;
   transition: transform var(--dur-slow) var(--ease), opacity var(--dur) var(--ease);
 }
 
-.envelope--open::after {
-  transform: rotateX(180deg);
-  opacity: 0;
-}
+.envelope--open::after { transform: rotateX(180deg); opacity: 0; }
 
-/* the wax seal — a pressed disc, lit from upper-left like everything else */
+/* the seal: a machined petrol disc, pressed */
 .envelope__seal {
   position: relative;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 82px;
-  height: 82px;
+  width: 78px;
+  height: 78px;
   border-radius: 999px;
-  background: radial-gradient(circle at 34% 28%, var(--wax-bright), var(--wax-deep) 78%);
+  background: radial-gradient(circle at 34% 28%, var(--petrol-bright), var(--petrol-deep) 78%);
   box-shadow:
-    inset 0 2px 3px rgb(255 255 255 / 18%),
-    inset 0 -3px 6px rgb(0 0 0 / 45%),
-    0 14px 34px -14px rgb(125 22 38 / 85%);
-  color: #f7e9e9;
-  font-size: 1.7rem;
-  transition: transform var(--dur) var(--ease);
+    inset 0 2px 3px rgb(255 255 255 / 26%),
+    inset 0 -3px 6px rgb(0 0 0 / 28%),
+    0 14px 30px -14px rgb(1 69 75 / 70%);
+  color: #eaf5f6;
+  font-size: 1.6rem;
+  transition: transform var(--dur) var(--ease-spring);
 }
 
 .envelope--won {
-  background:
-    radial-gradient(130% 100% at 50% 0%, rgb(183 38 58 / 22%), transparent 72%),
-    var(--bitumen);
-  border-color: rgb(183 38 58 / 45%);
+  background: var(--petrol-wash);
+  border-color: color-mix(in srgb, var(--petrol) 40%, var(--line));
 }
 
-.envelope--proving .envelope__seal {
-  animation: seal-press 1.6s var(--ease) infinite;
-}
+.envelope--proving .envelope__seal { animation: seal-press 1.5s var(--ease) infinite; }
 
 @keyframes seal-press {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(0.94); }
+  50% { transform: scale(0.93) rotate(-2deg); }
 }
 
 .envelope__caption {
   position: absolute;
-  bottom: 1.1rem;
+  bottom: 1rem;
   z-index: 1;
   font-family: var(--mono);
-  font-size: 0.73rem;
-  letter-spacing: 0.02em;
-  color: var(--ash);
+  font-size: 0.72rem;
+  color: var(--steel);
 }
 
 /* ---------------------------------------------------------- bid + form -- */
 
-.field {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.field__label {
-  font-size: 0.9rem;
-  color: var(--parchment-2);
-}
+.field { display: grid; gap: 0.5rem; }
+.field__label { font-size: 0.9rem; color: var(--slate-2); }
 
 .field__control {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.9rem 1.15rem;
-  border: 1px solid var(--hairline-2);
-  border-radius: var(--radius);
-  background: var(--bitumen);
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 45%);
-  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  background: var(--ice-2);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
 .field__control:focus-within {
-  border-color: var(--gilt);
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 45%), 0 0 0 3px rgb(201 162 39 / 14%);
+  border-color: var(--petrol);
+  background: var(--paper);
+  box-shadow: 0 0 0 3px rgb(0 99 107 / 12%);
 }
 
 .field__control input {
@@ -650,318 +786,246 @@ a.mono {
   min-width: 0;
   border: 0;
   background: transparent;
-  color: var(--parchment);
+  color: var(--slate);
   font-family: var(--mono);
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   font-variant-numeric: tabular-nums;
   outline: none;
 }
 
-.field__control input::placeholder {
-  color: var(--ash-2);
-}
-
-.field__suffix {
-  font-family: var(--mono);
-  color: var(--ash);
-  font-size: 0.88rem;
-}
-
-.field__error {
-  color: var(--wax-bright);
-  font-size: 0.84rem;
-}
+.field__control input::placeholder { color: var(--steel-2); }
+.field__suffix { font-family: var(--mono); color: var(--steel); font-size: 0.86rem; }
+.field__error { color: #b3261e; font-size: 0.84rem; }
 
 /* --------------------------------------------------------- privacy split -- */
 
 .split {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
   gap: 1px;
-  background: var(--hairline);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
   overflow: hidden;
-  box-shadow: var(--shade-2);
+  box-shadow: var(--shade-1);
 }
 
 .split__pane {
-  padding: 1.5rem 1.6rem;
-  background: var(--bitumen-2);
+  padding: 1.45rem 1.55rem;
+  background: var(--paper);
   display: grid;
-  gap: 0.75rem;
+  gap: 0.7rem;
   align-content: start;
 }
 
-.split__pane--public {
-  background: var(--bitumen);
-}
+.split__pane--public { background: var(--ice-2); }
 
-.split__list {
-  display: grid;
-  gap: 0.6rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.9rem;
-}
-
-.split__list li {
-  display: flex;
-  gap: 0.5rem;
-  color: var(--parchment-2);
-  min-width: 0;
-}
-
-.split__list b {
-  color: var(--parchment);
-  font-weight: 600;
-}
-
-.sealed-value {
-  font-family: var(--mono);
-  color: var(--ash-2);
-  letter-spacing: 0.22em;
-}
+.split__list { display: grid; gap: 0.55rem; margin: 0; padding: 0; list-style: none; font-size: 0.9rem; }
+.split__list li { display: flex; gap: 0.5rem; color: var(--slate-2); min-width: 0; }
+.split__list b { color: var(--slate); font-weight: 600; }
+.sealed-value { font-family: var(--mono); color: var(--steel-2); letter-spacing: 0.22em; }
 
 /* ============================================================= REVEAL == */
-/* The one loud place. Wax floods the field; nothing else in the design is
-   allowed to be this saturated. */
 
-.clock {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-}
+.clock { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 500; }
 
 .reveal-clock {
   display: grid;
-  gap: 0.55rem;
-  padding: 1.7rem 1.8rem;
-  border-radius: var(--radius);
-  background: linear-gradient(165deg, var(--wax-bright), var(--wax-deep));
-  border: 1px solid rgb(255 255 255 / 10%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 18%),
-    0 24px 60px -34px rgb(125 22 38 / 95%);
+  gap: 0.5rem;
+  padding: 1.6rem 1.7rem;
+  border-radius: var(--r-l);
+  background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
+  border: 1px solid var(--petrol-deep);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), 0 24px 54px -30px rgb(0 99 107 / 85%);
   color: #fff;
+  position: relative;
+  overflow: hidden;
 }
 
-/* post-reveal the heat comes out of it — back to ink, gilt label */
-.reveal-clock--revealed {
-  background: linear-gradient(180deg, var(--bitumen-3), var(--bitumen-2));
-  border-color: var(--hairline-2);
-  box-shadow: var(--inset-hi), var(--shade-2);
+/* a slow sweep across the live clock — the only ambient motion in the design */
+.reveal-clock::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 12%) 50%, transparent 65%);
+  transform: translate3d(-100%, 0, 0);
+  animation: sweep 5.5s var(--ease) infinite;
 }
+
+@keyframes sweep {
+  0% { transform: translate3d(-100%, 0, 0); }
+  60%, 100% { transform: translate3d(100%, 0, 0); }
+}
+
+.reveal-clock--revealed {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: var(--inset-hi), var(--shade-1);
+  color: var(--slate);
+}
+
+.reveal-clock--revealed::after { display: none; }
 
 .reveal-clock__label {
   font-family: var(--mono);
-  font-size: 0.64rem;
+  font-size: 0.63rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 72%);
+  color: rgb(255 255 255 / 76%);
 }
 
-.reveal-clock--revealed .reveal-clock__label {
-  color: var(--gilt);
-}
+.reveal-clock--revealed .reveal-clock__label { color: var(--petrol); }
 
 .reveal-clock__value {
   font-family: var(--mono);
   font-weight: 600;
-  font-size: clamp(2.3rem, 7vw, 3.3rem);
+  font-size: clamp(2.2rem, 6.5vw, 3.2rem);
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  position: relative;
 }
 
 /* ------------------------------------------------------------- verdict -- */
 
 .verdict {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.85rem;
   text-align: center;
-  padding: 2.6rem 1.8rem;
-  border-radius: var(--radius);
+  padding: 2.5rem 1.7rem;
+  border-radius: var(--r-l);
   border: 1px solid transparent;
-  color: #fff;
 }
 
-/* win: wax bloom */
 .verdict--win {
-  background:
-    radial-gradient(120% 130% at 50% 0%, var(--wax-bright), var(--wax-deep) 75%);
-  border-color: rgb(255 255 255 / 12%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%), var(--shade-3);
+  background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
+  border-color: var(--petrol-deep);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), var(--shade-3);
 }
 
-/* loss: the page goes quiet — the secret stays sealed */
+/* loss: the instrument goes quiet — nothing was disclosed */
 .verdict--loss {
-  background: var(--bitumen);
-  border-color: var(--hairline-2);
-  box-shadow: var(--inset-hi), var(--shade-2);
-  color: var(--parchment);
+  background: var(--ice-2);
+  border-color: var(--line);
+  color: var(--slate);
 }
 
 .verdict__stamp {
   font-family: var(--mono);
   font-weight: 600;
-  font-size: 0.7rem;
-  letter-spacing: 0.34em;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 70%);
+  color: rgb(255 255 255 / 74%);
 }
 
-.verdict--loss .verdict__stamp {
-  color: var(--ash);
-}
+.verdict--loss .verdict__stamp { color: var(--steel); }
 
 .verdict h2 {
   font-family: var(--display);
-  font-size: clamp(2.1rem, 5vw, 3rem);
-  line-height: 1.02;
+  font-size: clamp(2rem, 5vw, 2.9rem);
   color: inherit;
 }
 
-.verdict p {
-  margin: 0;
-  color: rgb(255 255 255 / 84%);
-}
-
-.verdict--loss p {
-  color: var(--parchment-2);
-}
-
-.verdict .flex-line {
-  font-family: var(--mono);
-  font-size: 0.86rem;
-  color: rgb(255 255 255 / 88%);
-}
-
-.verdict--loss .flex-line {
-  color: var(--ash);
-}
-
-.verdict a.mono {
-  color: #fff;
-  text-decoration-color: rgb(255 255 255 / 45%);
-}
+.verdict p { margin: 0; color: rgb(255 255 255 / 84%); }
+.verdict--loss p { color: var(--slate-2); }
+.verdict .flex-line { font-family: var(--mono); font-size: 0.85rem; color: rgb(255 255 255 / 90%); }
+.verdict--loss .flex-line { color: var(--steel); }
+.verdict a.mono { color: #fff; }
 
 /* ------------------------------------------------------------ receipts -- */
-/* A real sequence — commit, bid, reveal — so it is numbered. The numerals are
-   set in the display face and hang in the margin like a catalogue plate. */
 
-.receipt-chain {
-  display: grid;
-  gap: 1.2rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: receipt;
-}
+.receipt-chain { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; counter-reset: receipt; }
 
 .receipt-step {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.65rem;
   position: relative;
   counter-increment: receipt;
+  padding: 1.7rem;
+  padding-left: 4.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--paper);
+  box-shadow: var(--shade-1);
 }
 
+/* the step number sits in the gutter, mono, petrol — a measurement, not decor */
 .receipt-step::before {
-  content: counter(receipt);
+  content: counter(receipt, decimal-leading-zero);
   position: absolute;
-  top: 1.5rem;
-  right: 1.9rem;
-  font-family: var(--display);
-  font-size: 3.4rem;
-  line-height: 1;
-  color: var(--parchment);
-  opacity: 0.08;
-  pointer-events: none;
+  left: 1.7rem;
+  top: 1.85rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--petrol);
 }
 
-.receipt-step h3 {
-  font-size: 1.6rem;
-}
-
-.receipt-step p {
-  margin: 0;
-  max-width: 46rem;
-}
+.receipt-step h3 { font-size: 1.45rem; }
+.receipt-step p { margin: 0; max-width: 46rem; }
 
 /* --------------------------------------------------------------- misc -- */
 
 .skeleton {
   border-radius: 5px;
-  background: linear-gradient(90deg, var(--bitumen-3), var(--bitumen-4), var(--bitumen-3));
+  background: linear-gradient(90deg, var(--ice-2), var(--line), var(--ice-2));
   background-size: 200% 100%;
-  animation: shimmer 1.6s var(--ease) infinite;
+  animation: shimmer 1.5s var(--ease) infinite;
   color: transparent;
 }
 
-@keyframes shimmer {
-  to { background-position: -200% 0; }
-}
+@keyframes shimmer { to { background-position: -200% 0; } }
 
 .center-note {
   display: grid;
-  gap: 1rem;
+  gap: 0.9rem;
   place-items: center;
   text-align: center;
   padding-block: 6rem;
-  color: var(--parchment-2);
+  color: var(--slate-2);
 }
 
-.center-note h2 {
-  font-size: clamp(2rem, 5vw, 2.8rem);
-}
+.center-note h2 { font-size: clamp(2rem, 5vw, 2.7rem); }
 
 /* -------------------------------------------------------- responsive -- */
 
+@media (max-width: 900px) {
+  .drop-layout { grid-template-columns: 1fr; }
+  .bento { grid-template-columns: repeat(2, 1fr); }
+  .bento__tile,
+  .bento__tile--feature,
+  .bento__tile--wide,
+  .bento__tile--tall { grid-column: span 2; grid-row: auto; }
+}
+
 @media (max-width: 768px) {
-  .wrap {
-    width: min(1180px, 100% - 2rem);
-  }
-
-  main {
-    padding-block: 3rem 2.5rem;
-  }
-
-  .card {
-    padding: 1.35rem;
-  }
-
-  .hero {
-    padding-block: 1.5rem 3rem;
-  }
-
-  .stat-row {
-    gap: 1.25rem;
-  }
-
-  .receipt-step::before {
-    font-size: 2.4rem;
-    right: 1.1rem;
-    top: 1.1rem;
-  }
+  .wrap, .masthead__inner { width: min(1240px, 100% - 1.5rem); }
+  main { padding-block: 2.5rem 2.5rem; }
+  .bento { grid-template-columns: 1fr; }
+  .bento__tile,
+  .bento__tile--feature,
+  .bento__tile--wide,
+  .bento__tile--tall { grid-column: span 1; }
+  .hero { padding-block: 2rem 2.5rem; }
+  .hero h1 { margin-left: 0; }
+  .card__core, .bento__tile--feature .drop-card, .tile, .receipt-step { padding: 1.25rem; }
+  .receipt-step { padding-left: 1.25rem; padding-top: 2.6rem; }
+  .receipt-step::before { left: 1.25rem; top: 1.1rem; }
+  .stat-row { gap: 1.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  html { scroll-behavior: auto; }
 
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
 
-  .reveal {
-    opacity: 1;
-    transform: none;
-  }
+  .reveal { opacity: 1; transform: none; clip-path: none; }
+  .reveal-clock::after { display: none; }
 }
