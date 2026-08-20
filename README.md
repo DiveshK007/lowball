@@ -17,7 +17,7 @@ The only things ever made public are the things that keep the house honest: the 
 | | |
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
-| **Contract (Preview)** | [`e5f6d470…f7c4fc11`](https://lowball-orpin.vercel.app/drop/drop-001) — live drop, reads Preview chain state |
+| **Contract (Preview)** | [`ae971dc9…43c48408`](https://lowball-orpin.vercel.app/drop/drop-001) — **drop open now**, reads Preview chain state |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preview**, and fund it at the [Preview faucet](https://faucet.preview.midnight.network/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
@@ -35,8 +35,11 @@ The 60-second walkthrough:
 
 | Network | Address |
 |---|---|
-| Preview | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
+| Preview (live) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` |
+| Preview (L1 record) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
 | Preprod | _deploy in progress — see [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md)_ |
+
+The contract holds one drop for its lifetime (`createDrop` asserts the slot is unset), so each new drop is a new deployment. The **live** contract above has a drop open now (deploy tx `00ccb043…385df` block 499249; drop tx `003cbf41…ac63` block 499266). The **L1 record** contract is the original deploy that carried the full loop end to end — bid `7a5179ff…dc45`, reveal `001a55f2…be7ea5`, verdict win at 30 over a 25 tDUST reserve — kept because that is the evidence L1/L2 were judged on.
 
 L1 first deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085); Preview's dust history syncs in minutes versus Preprod's ~1.35M-event genesis replay ([`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)). The Preprod deploy runs from a 32–64 GB cloud VM per [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md); the wallet-state cache it produces makes later Preprod deploys skip the genesis replay. Full L1 evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md).
 

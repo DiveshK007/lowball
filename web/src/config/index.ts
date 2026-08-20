@@ -22,12 +22,12 @@ export const COMPATIBLE_CONNECTOR_API_VERSION = '4.x'
 const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preview') as NetworkId
 
 /**
- * The deployed LOWBALL contract on Preview (L1, block 215085). Baked as the
+ * The live LOWBALL contract on Preview (deployed at block 499249). Baked as the
  * default so a fresh clone or a Vercel build with no env vars still points at
  * the live drop; VITE_CONTRACT_ADDRESS overrides it for other deploys.
  */
 const PREVIEW_CONTRACT =
-  'e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11'
+  'ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408'
 
 /** Per-network faucet + explorer roots. L1/L2 run on Preview (see README). */
 const FAUCET: Record<NetworkId, string> = {
