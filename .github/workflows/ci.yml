@@ -35,3 +35,26 @@ jobs:
 
       - name: Run test suite
         run: npm test --prefix contract
+
+  web:
+    name: build + test web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --prefix web
+
+      # Covers the receipts page's commitment maths, which is asserted against
+      # a commitment the chain has already accepted (see hashes.test.ts).
+      - name: Run test suite
+        run: npm test --prefix web
+
+      - name: Production build
+        run: npm run build --prefix web
