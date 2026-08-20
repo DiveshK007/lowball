@@ -9,17 +9,17 @@ import { ReceiptsPage } from './app/ReceiptsPage'
 
 const Masthead = () => (
   <header className="masthead">
-    <div className="wrap masthead__inner">
-      <Link to="/" className="wordmark">
+    <nav className="wrap masthead__inner" aria-label="Primary">
+      <Link to="/" className="wordmark" aria-label="LOWBALL — home">
         LOW<span>BALL</span>
       </Link>
-      <span className="pill">
-        <span className="dot" />
+      <span className="pill" title="Midnight network this build targets">
+        <span className="dot" aria-hidden="true" />
         {networkLabel[config.networkId]}
       </span>
       <div className="masthead__spacer" />
       <ConnectButton />
-    </div>
+    </nav>
   </header>
 )
 
@@ -38,7 +38,12 @@ const Footer = () => (
 
 const NotFound = () => (
   <div className="center-note">
+    <span className="eyebrow">404</span>
     <h2>Nothing sealed here.</h2>
+    <p className="muted" style={{ margin: 0, maxWidth: '32rem' }}>
+      This address holds no drop. The gallery lists everything the house has
+      opened.
+    </p>
     <Link className="btn btn--ghost" to="/">
       Back to the gallery
     </Link>
@@ -49,8 +54,11 @@ const App = () => (
   <WalletProvider>
     <BrowserRouter>
       <div className="shell">
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
         <Masthead />
-        <main>
+        <main id="main">
           <div className="wrap">
             <Routes>
               <Route path="/" element={<GalleryPage />} />

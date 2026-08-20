@@ -64,11 +64,17 @@ export const BidForm = ({
             : 'Connect Lace to seal'}
     </button>
 
-    {flow.sealing ? (
-      <p className="faint" style={{ margin: 0, fontSize: '0.84rem' }}>
-        Building the ZK proof locally, then Lace signs and submits. The proof
-        step is the slow one — leave this tab open.
-      </p>
-    ) : null}
+    {/* Live region is always mounted so screen readers announce the change
+        rather than the node appearing (Vercel guideline: async updates). */}
+    <p
+      className="faint"
+      style={{ margin: 0, fontSize: '0.84rem' }}
+      role="status"
+      aria-live="polite"
+    >
+      {flow.sealing
+        ? 'Building the ZK proof locally, then Lace signs and submits. The proof step is the slow one — leave this tab open.'
+        : ''}
+    </p>
   </form>
 )
