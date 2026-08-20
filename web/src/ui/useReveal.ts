@@ -24,22 +24,40 @@ export const useReveal = <T extends HTMLElement>(stagger = 90) => {
       return
     }
 
+    const show = (el: HTMLElement, i = 0) => {
+      el.style.transitionDelay = `${i * stagger}ms`
+      el.classList.add('reveal--in')
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries
           .filter((entry) => entry.isIntersecting)
           .forEach((entry, i) => {
             const el = entry.target as HTMLElement
-            el.style.transitionDelay = `${i * stagger}ms`
-            el.classList.add('reveal--in')
+            show(el, i)
             observer.unobserve(el)
           })
       },
-      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+      // threshold 0: any sliver counts. A higher threshold risks content that
+      // never reveals, and hidden content is a worse bug than a missed animation.
+      { rootMargin: '0px 0px -5% 0px', threshold: 0 },
     )
 
     targets.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+
+    // Safety net: whatever happens — observer quirk, zero-area element, a
+    // future style change — nothing stays invisible.
+    const failsafe = window.setTimeout(() => {
+      targets.forEach((el) => {
+        if (!el.classList.contains('reveal--in')) show(el)
+      })
+    }, 1600)
+
+    return () => {
+      observer.disconnect()
+      window.clearTimeout(failsafe)
+    }
   }, [stagger])
 
   return root
