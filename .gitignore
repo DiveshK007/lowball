@@ -24,3 +24,12 @@ ops/**/*.preimage
 # OS
 .DS_Store
 ops/managed/
+
+# Third-party agent skills (tooling, not project code)
+.agents/
+.claude/skills/
+skills-lock.json
+
+# compiled output of contract/src/witnesses.ts
+contract/src/witnesses.js
+contract/src/witnesses.js.map
