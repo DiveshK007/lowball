@@ -1,20 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LOWBALL wax seal">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LOWBALL sealed disc">
   <defs>
-    <radialGradient id="wax" cx="34%" cy="28%" r="78%">
-      <stop offset="0%" stop-color="#d62f46" />
-      <stop offset="78%" stop-color="#7d1626" />
+    <radialGradient id="petrol" cx="34%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#00818c" />
+      <stop offset="78%" stop-color="#01454b" />
     </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="14" fill="#14100e" />
-  <!-- pressed wax disc, lit from upper-left like the rest of the design -->
-  <circle cx="32" cy="32" r="19" fill="url(#wax)" />
-  <circle cx="32" cy="32" r="19" fill="none" stroke="#ede6d8" stroke-opacity="0.14" />
-  <!-- the L stamp, struck into the wax -->
+  <rect width="64" height="64" rx="14" fill="#f4f6f8" />
+  <!-- drafting grid, faint -->
+  <g stroke="#dfe4e8" stroke-width="1">
+    <path d="M0 21h64M0 43h64M21 0v64M43 0v64" />
+  </g>
+  <!-- the pressed seal -->
+  <circle cx="32" cy="32" r="18" fill="url(#petrol)" />
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#01454b" stroke-opacity=".5" />
   <path
-    d="M26 22.5v19h12"
+    d="M26 23v18h12"
     fill="none"
-    stroke="#f7e9e9"
-    stroke-opacity="0.92"
+    stroke="#eaf5f6"
     stroke-width="4"
     stroke-linecap="square"
   />
