@@ -691,6 +691,33 @@ a.mono {
   text-decoration-color: color-mix(in srgb, #fff 45%, transparent);
 }
 
+/* ------------------------------------------------------------ receipts -- */
+/* The fairness chain is a real sequence — commit, bid, reveal — so it is
+   numbered. The numbers carry the order the chain recorded, not decoration. */
+
+.receipt-chain {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: receipt;
+}
+
+.receipt-step {
+  display: grid;
+  gap: 0.6rem;
+  position: relative;
+}
+
+.receipt-step h3 {
+  font-size: 1.5rem;
+}
+
+.receipt-step p {
+  margin: 0;
+}
+
 /* --------------------------------------------------------------- misc -- */
 
 .skeleton {

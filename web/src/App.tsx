@@ -5,6 +5,7 @@ import { WalletProvider } from './lib/midnight'
 import { ConnectButton } from './features/wallet/ConnectButton'
 import { GalleryPage } from './app/GalleryPage'
 import { DropPage } from './app/DropPage'
+import { ReceiptsPage } from './app/ReceiptsPage'
 
 const Masthead = () => (
   <header className="masthead">
@@ -54,6 +55,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<GalleryPage />} />
               <Route path="/drop/:dropId" element={<DropPage />} />
+              <Route path="/receipts/:dropId" element={<ReceiptsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

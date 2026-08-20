@@ -165,6 +165,10 @@ export const DropPage = () => {
               contract {shortHex(drop.contractAddress, 10)} →
             </a>
           ) : null}
+
+          <Link className="mono" to={`/receipts/${drop.id}`}>
+            public receipts — verify this drop →
+          </Link>
         </section>
       </div>
 
