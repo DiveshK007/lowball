@@ -1,0 +1,13 @@
+{
+  "name": "LOWBALL — sealed-bid mystery drops",
+  "short_name": "LOWBALL",
+  "description": "Name your price on a mystery drop. The reserve is sealed onchain before you bid.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14100e",
+  "theme_color": "#14100e",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
