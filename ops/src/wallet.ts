@@ -124,6 +124,27 @@ const readWalletCache = (): WalletCache | null => {
  * start() restores from here and resumes syncing from the checkpoint instead
  * of replaying the chain from genesis. Call only after a full waitForSync.
  */
+/**
+ * Checkpoint the wallet cache on a timer while a long sync runs.
+ *
+ * A Preprod genesis sync is hours of work, and losing the network part-way
+ * throws all of it away. Writing the cache periodically turns that into a
+ * resumable job: a restart restores the last checkpoint and continues from
+ * there. Returns a stop function; failures are logged, never fatal, because a
+ * checkpoint miss must not kill an otherwise healthy sync.
+ */
+export function checkpointWhileSyncing(
+  ctx: WalletContext,
+  everyMs = 5 * 60_000,
+): () => void {
+  const timer = setInterval(() => {
+    void persistWalletCache(ctx).catch((e) =>
+      console.warn(`  checkpoint skipped: ${e instanceof Error ? e.message : e}`),
+    );
+  }, everyMs);
+  return () => clearInterval(timer);
+}
+
 export async function persistWalletCache(ctx: WalletContext): Promise<void> {
   const [shielded, unshielded, dust] = await Promise.all([
     ctx.shieldedWallet.serializeState(),
@@ -436,7 +457,15 @@ export async function deployToNetwork<Ledger, PrivateState>(args: {
   const ctx = await startWallet(config, seed);
   try {
     console.log(`Unshielded address: ${ctx.unshieldedAddress}`);
-    const state = await waitForSync(ctx.wallet);
+    // Genesis sync on Preprod runs for hours; checkpoint as it goes so an
+    // interruption resumes instead of starting over.
+    const stopCheckpoints = checkpointWhileSyncing(ctx);
+    let state;
+    try {
+      state = await waitForSync(ctx.wallet);
+    } finally {
+      stopCheckpoints();
+    }
     await persistWalletCache(ctx);
     const balance = unshieldedBalanceOf(state);
     console.log(`Unshielded balance: ${balance.toLocaleString()} tNight`);
