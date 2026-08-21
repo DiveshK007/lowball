@@ -35,13 +35,13 @@ The 60-second walkthrough:
 
 | Network | Address |
 |---|---|
-| Preview (live) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` |
+| **Preprod** | **`1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272`** |
+| Preview (live drop) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` |
 | Preview (L1 record) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
-| Preprod | _deploy in progress — see [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md)_ |
 
-The contract holds one drop for its lifetime (`createDrop` asserts the slot is unset), so each new drop is a new deployment. The **live** contract above has a drop open now (deploy tx `00ccb043…385df` block 499249; drop tx `003cbf41…ac63` block 499266). The **L1 record** contract is the original deploy that carried the full loop end to end — bid `7a5179ff…dc45`, reveal `001a55f2…be7ea5`, verdict win at 30 over a 25 tDUST reserve — kept because that is the evidence L1/L2 were judged on.
+Deployed to **Preprod** at block 2,202,228 (deploy tx `0018b530…a6f632`), verified on the Preprod indexer as a `ContractDeploy`. The contract holds one drop for its lifetime (`createDrop` asserts the slot is unset), so each new drop is a new deployment. The **Preview live drop** has a drop open now; the **Preview L1 record** contract is the original deploy that carried the full loop end to end — bid `7a5179ff…dc45`, reveal `001a55f2…be7ea5`, verdict win at 30 over a 25 tDUST reserve — kept because that is the evidence L1/L2 were judged on.
 
-L1 first deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085); Preview's dust history syncs in minutes versus Preprod's ~1.35M-event genesis replay ([`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)). The Preprod deploy runs from a 32–64 GB cloud VM per [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md); the wallet-state cache it produces makes later Preprod deploys skip the genesis replay. Full L1 evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md).
+L1 first deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085), because Preprod's ~1.45M-event dust genesis replay is a multi-hour, memory-hungry job ([`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)). Preprod was reached in the end **without a cloud VM**, by checkpointing the wallet state every 5 minutes and migrating the resulting snapshot between machines — see [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md) for both routes. That cache (`ops/vault/wallet-cache-preprod.json`, git-ignored) is retained, so later Preprod deploys resume from the tip instead of replaying genesis. Full evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md), [`03-preprod-deploy.md`](docs/submissions/L1/03-preprod-deploy.md).
 
 ## Privacy Claim
 

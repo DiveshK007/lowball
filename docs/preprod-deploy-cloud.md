@@ -1,5 +1,14 @@
 # Deploying LOWBALL to Preprod from a cloud VM
 
+> **Outcome note (2026-08-21):** Preprod was ultimately deployed **without a cloud
+> VM** — contract `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272`
+> at block 2,202,228. What made consumer hardware viable was checkpointing the
+> wallet state every 5 minutes (`checkpointWhileSyncing`) so the multi-hour sync
+> became resumable *and* portable across machines. See
+> [`docs/submissions/L1/03-preprod-deploy.md`](submissions/L1/03-preprod-deploy.md).
+> This runbook remains the reliable route if you want it done in one pass on a
+> 32–64 GB box, and is still the recommendation for mainnet at L6.
+
 Preprod's genesis sync of the shielded + dust ledgers (~1.35M events) needs more
 live RAM than a 16 GB laptop has — it OOMs (see `docs/spikes/preprod-sync-memory.md`).
 Run the deploy once on a 32–64 GB VM. The deploy **auto-caches the synced wallet
