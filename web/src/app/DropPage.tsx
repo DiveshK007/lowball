@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { explorerContractUrl } from '../config'
 import { findDrop } from '../config/drops'
-import { formatDust, shortHex } from '../lib/format'
+import { formatDust, groupHex, shortHex } from '../lib/format'
 import { useDropState, useWallet } from '../lib/midnight'
 import { Banner } from '../ui/Banner'
 import { Stat } from '../ui/Stat'
@@ -139,11 +139,13 @@ export const DropPage = () => {
             <Countdown variant="clock" label="Closes in" to={state?.closeTime ?? null} />
           )}
 
-          <div className="stack" style={{ gap: '0.4rem' }}>
-            <span className="stat__label">Reserve commitment</span>
-            <span className="mono">
-              {state ? shortHex(state.commitmentHex, 16) : 'awaiting chain read'}
-            </span>
+          <div className="stack" style={{ gap: '0.6rem' }}>
+            <div className="hash">
+              <span className="hash__label">Reserve commitment</span>
+              <span className="hash__value">
+                {state ? groupHex(state.commitmentHex) : 'awaiting chain read'}
+              </span>
+            </div>
             <span className="faint" style={{ fontSize: '0.82rem' }}>
               Published before bidding opened. The reveal must hash to exactly
               this, or the contract rejects it.

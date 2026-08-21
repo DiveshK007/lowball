@@ -8,7 +8,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { explorerContractUrl, networkLabel, config } from '../config'
 import { findDrop } from '../config/drops'
-import { formatDust, shortHex } from '../lib/format'
+import { formatDust, groupHex, shortHex } from '../lib/format'
 import { reserveCommitmentHex, useDropState } from '../lib/midnight'
 
 const HEX_32 = /^[0-9a-fA-F]{64}$/
@@ -88,8 +88,11 @@ export const ReceiptsPage = () => {
             From that moment the reserve is fixed: any later reveal must hash to
             exactly this value or the contract rejects it.
           </p>
-          <div className="mono">
-            {loading ? '…' : (state?.commitmentHex ?? 'awaiting chain read')}
+          <div className="hash">
+            <span className="hash__label">hash(reserve, salt) — published first</span>
+            <span className="hash__value">
+              {loading ? '…' : groupHex(state?.commitmentHex ?? 'awaiting chain read')}
+            </span>
           </div>
         </li>
 
@@ -104,9 +107,11 @@ export const ReceiptsPage = () => {
             Compact witnesses, consumed inside the proof and never written down.
             A losing bid produces no transaction at all.
           </p>
-          <div className="mono">
-            latest bid commitment{' '}
-            {state ? shortHex(state.latestBidCommitmentHex, 12) : '—'}
+          <div className="hash">
+            <span className="hash__label">latest bid commitment</span>
+            <span className="hash__value">
+              {state ? groupHex(state.latestBidCommitmentHex) : '—'}
+            </span>
           </div>
         </li>
 
@@ -180,7 +185,7 @@ export const ReceiptsPage = () => {
                   ? 'The house told the truth.'
                   : 'That salt does not produce this commitment.'}
               </h2>
-              <p className="flex-line">{shortHex(check.computed, 16)}</p>
+              <p className="flex-line">{groupHex(check.computed)}</p>
               <p>
                 {check.matches
                   ? `hash(${formatDust(reserve!)} tDUST, your salt) equals the commitment published before bidding opened.`
