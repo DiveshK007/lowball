@@ -13,6 +13,12 @@
  *   · radius scale 8 / 12 / 980px pills; nav is saturated glass
  *   · solid grounds, no competing texture
  * Compression within, expansion between: type set tight, space set vast.
+ *
+ * Luxury layer (Superhuman): one dramatic gesture — a deep petrol gradient
+ * panel that reads as the sealed envelope itself — against an otherwise quiet
+ * page. Display type compressed to 0.96, weights on the off-stops (460/540),
+ * CTAs in warm bone rather than anything saturated, atmospheric glow instead
+ * of hard shadow. Everything else stays restrained so the one gesture lands.
  */
 
 :root {
@@ -33,9 +39,18 @@
   --petrol-deep: #01454b;
   --petrol-wash: #e2eef0;
 
+  /* the dramatic dark — deep enough to feel cinematic, still petrol */
+  --abyss: #06232a;
+  --abyss-2: #0a3138;
+
+  /* warm bone: a muted CTA, luxurious rather than loud */
+  --bone: #ece7de;
+  --bone-2: #e0d9cd;
+
   /* structure */
   --line: #dfe4e8;
   --line-2: #cdd5da;
+  --hairline-lite: rgb(255 255 255 / 16%);
 
   /* shadows carry the ground's cool hue, never black */
   /* Apple uses one soft, wide, offset shadow — or nothing. Tinted with the
@@ -45,11 +60,11 @@
   --shade-3: 3px 5px 30px 0 rgb(26 32 36 / 16%);
   --inset-hi: none;
 
-  /* Apple's scale: 8 standard, 12 large, 980px pills. Nothing between. */
-  --r-s: 6px;
+  /* Superhuman's binary radius: 8 small, 16 large. Pills only for controls. */
+  --r-s: 8px;
   --r: 8px;
-  --r-l: 12px;
-  --r-xl: 12px;
+  --r-l: 16px;
+  --r-xl: 16px;
   --r-pill: 980px;
 
   /* SF Pro on Apple hardware via -apple-system: the real thing, licensed,
@@ -134,8 +149,10 @@ h2,
 h3 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 600; /* Apple's ceiling for headlines */
-  line-height: 1.07; /* famously tight */
+  /* 540 sits between Medium and Semibold — the off-stop reads confident
+     without shouting. Variable faces interpolate; others snap to nearest. */
+  font-weight: 540;
+  line-height: 0.96; /* architectural compression */
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
@@ -429,8 +446,9 @@ main {
 }
 
 .card {
-  background: var(--paper);
-  border: none; /* Apple almost never shows a border on a surface */
+  /* a whisper of gradient gives the surface material rather than flatness */
+  background: linear-gradient(180deg, #fff, #fbfcfd);
+  border: none;
   border-radius: var(--r-l);
   padding: 1.9rem;
   box-shadow: var(--shade-2);
@@ -508,33 +526,91 @@ a.mono {
 .banner__hint { color: var(--slate-2); font-size: 0.85rem; }
 
 /* --------------------------------------------------------------- hero -- */
-/* Off-centre, type bleeding past the container's left edge. */
+/* The one dramatic gesture: a deep petrol panel that reads as the sealed
+   envelope itself. Everything below it returns to the quiet ice ground. */
 
 .hero {
+  position: relative;
   display: grid;
-  gap: 1.4rem;
-  padding-block: 4.5rem 5.5rem;
-  max-width: 58rem;
+  gap: 1.5rem;
+  padding: clamp(3rem, 7vw, 5.5rem) clamp(1.75rem, 5vw, 4rem) clamp(3.5rem, 7vw, 5rem);
+  border-radius: var(--r-l);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 90% at 12% 0%, var(--petrol-bright) 0%, transparent 55%),
+    radial-gradient(90% 80% at 100% 100%, var(--petrol) 0%, transparent 60%),
+    linear-gradient(160deg, var(--abyss-2), var(--abyss) 55%, #04191e);
+  box-shadow: 3px 5px 40px 0 rgb(6 35 42 / 26%);
+  color: #fff;
+}
+
+/* atmospheric bloom — the "stellar" layer, not a hard highlight */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -60% 30%;
+  height: 90%;
+  z-index: -1;
+  background: radial-gradient(circle, rgb(0 129 140 / 34%), transparent 62%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.hero .eyebrow {
+  color: rgb(255 255 255 / 62%);
 }
 
 .hero h1 {
-  font-size: clamp(3rem, 8.5vw, 6.4rem);
-  line-height: 1.02;
+  font-size: clamp(2.8rem, 8vw, 6rem);
+  line-height: 0.96;
   letter-spacing: -0.045em;
-  margin-left: -0.055em; /* optical bleed: the cap aligns, not the box */
+  max-width: 22ch;
+  color: rgb(255 255 255 / 96%);
 }
 
 .hero__rule {
-  width: 120px;
+  width: 104px;
   height: 2px;
-  background: var(--petrol);
+  background: linear-gradient(90deg, var(--petrol-bright), transparent);
 }
 
 .hero p {
   margin: 0;
-  color: var(--slate-2);
-  font-size: 1.1rem;
-  max-width: 40rem;
+  color: rgb(255 255 255 / 78%);
+  font-size: 1.12rem;
+  line-height: 1.5;
+  max-width: 42ch;
+}
+
+/* warm bone CTA on the dark field — understated, never saturated */
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  align-self: start;
+  justify-self: start; /* grid children stretch by default — pin the width */
+  margin-top: 0.4rem;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: var(--r);
+  background: var(--bone);
+  color: #14201f;
+  font-weight: 540;
+  font-size: 1rem;
+  letter-spacing: -0.018em;
+  text-decoration: none;
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease-spring);
+}
+
+.hero__cta:hover {
+  background: #f4efe6;
+  color: #14201f;
+  transform: translate3d(0, -1px, 0);
+}
+
+.hero__cta:active {
+  transform: scale(0.98);
 }
 
 /* -------------------------------------------------------- bento grid -- */
@@ -569,7 +645,7 @@ a.mono {
   padding: 1.7rem;
   border: none;
   border-radius: var(--r-l);
-  background: var(--paper);
+  background: linear-gradient(180deg, #fff, #fbfcfd);
   box-shadow: var(--shade-2);
   height: 100%;
 }
@@ -580,10 +656,12 @@ a.mono {
 }
 
 .tile--signal {
-  background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
-  border-color: var(--petrol-deep);
+  background:
+    radial-gradient(120% 100% at 15% 0%, rgb(255 255 255 / 14%), transparent 60%),
+    linear-gradient(160deg, var(--petrol-bright), var(--petrol-deep));
+  border: 1px solid var(--hairline-lite);
   color: #fff;
-  box-shadow: 0 20px 44px -28px rgb(0 99 107 / 80%);
+  box-shadow: 3px 5px 34px 0 rgb(1 69 75 / 30%);
 }
 
 .tile--signal .eyebrow,
@@ -853,9 +931,11 @@ a.mono {
   gap: 0.5rem;
   padding: 1.6rem 1.7rem;
   border-radius: var(--r-l);
-  background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
-  border: none;
-  box-shadow: 3px 5px 30px 0 rgb(0 99 107 / 26%);
+  background:
+    radial-gradient(130% 100% at 12% 0%, rgb(255 255 255 / 16%), transparent 58%),
+    linear-gradient(160deg, var(--petrol-bright), var(--petrol-deep));
+  border: 1px solid var(--hairline-lite);
+  box-shadow: 3px 5px 40px 0 rgb(1 69 75 / 34%);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -918,10 +998,12 @@ a.mono {
 }
 
 .verdict--win {
-  background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
-  border-color: var(--petrol-deep);
+  background:
+    radial-gradient(120% 110% at 50% 0%, rgb(255 255 255 / 18%), transparent 58%),
+    linear-gradient(160deg, var(--petrol-bright), var(--petrol-deep));
+  border: 1px solid var(--hairline-lite);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), var(--shade-3);
+  box-shadow: 3px 5px 44px 0 rgb(1 69 75 / 38%);
 }
 
 /* loss: the instrument goes quiet — nothing was disclosed */
@@ -1022,6 +1104,9 @@ a.mono {
 
 @media (max-width: 768px) {
   .wrap, .masthead__inner { width: min(1240px, 100% - 1.5rem); }
+  /* the banner's action crowds its text at this width — stack it */
+  .banner { flex-direction: column; align-items: stretch; gap: 0.85rem; }
+  .banner .btn { align-self: start; }
   main { padding-block: 2.5rem 2.5rem; }
   .bento { grid-template-columns: 1fr; }
   .bento__tile,

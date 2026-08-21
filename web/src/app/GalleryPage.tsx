@@ -49,6 +49,12 @@ export const GalleryPage = () => {
           Bid what you think it's worth — your number is sealed forever, even from
           the house. Clear the reserve and you win at your price.
         </p>
+        {featured ? (
+          <Link className="hero__cta reveal" to={`/drop/${featured.id}`}>
+            Open the drop
+            <span aria-hidden="true">→</span>
+          </Link>
+        ) : null}
       </section>
 
       <WalletNotice />
