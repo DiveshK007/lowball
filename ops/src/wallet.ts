@@ -3,7 +3,14 @@
 // contract/scripts/deploy.ts can stay a thin wrapper.
 
 import { Buffer } from "node:buffer";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -120,11 +127,6 @@ const readWalletCache = (): WalletCache | null => {
 };
 
 /**
- * Serialize the fully-synced sub-wallets to the per-network cache. A later
- * start() restores from here and resumes syncing from the checkpoint instead
- * of replaying the chain from genesis. Call only after a full waitForSync.
- */
-/**
  * Checkpoint the wallet cache on a timer while a long sync runs.
  *
  * A Preprod genesis sync is hours of work, and losing the network part-way
@@ -145,18 +147,59 @@ export function checkpointWhileSyncing(
   return () => clearInterval(timer);
 }
 
+/**
+ * Serialize the sub-wallets to the per-network cache. A later start() restores
+ * from here and resumes from the checkpoint instead of replaying from genesis.
+ *
+ * Each sub-wallet is serialized independently and a failure falls back to that
+ * wallet's previously cached value. This matters: during the Preprod sync the
+ * shielded wallet intermittently threw "Could not serialize local state", and
+ * because all three were serialized with Promise.all, one failure discarded the
+ * *dust* state too — the part that costs 1.45M replayed events. Shielded is
+ * ~4 KB and re-syncs in minutes; dust is megabytes and takes hours, so a
+ * partial checkpoint carrying stale-shielded + fresh-dust is far better than
+ * none. Only a wallet with neither a fresh nor a cached value aborts the write.
+ */
 export async function persistWalletCache(ctx: WalletContext): Promise<void> {
-  const [shielded, unshielded, dust] = await Promise.all([
+  const previous = readWalletCache();
+  const [shielded, unshielded, dust] = await Promise.allSettled([
     ctx.shieldedWallet.serializeState(),
     ctx.unshieldedWallet.serializeState(),
     ctx.dustWallet.serializeState(),
   ]);
+
+  const degraded: string[] = [];
+  const pick = <T,>(
+    result: PromiseSettledResult<T>,
+    fallback: T | undefined,
+    label: string,
+  ): T => {
+    if (result.status === "fulfilled") return result.value;
+    if (fallback === undefined) {
+      throw new Error(
+        `cannot checkpoint: ${label} failed to serialize and has no cached value ` +
+          `(${result.reason instanceof Error ? result.reason.message.split("\n")[0] : result.reason})`,
+      );
+    }
+    degraded.push(label);
+    return fallback;
+  };
+
+  const next: WalletCache = {
+    shielded: pick(shielded, previous?.shielded, "shielded"),
+    unshielded: pick(unshielded, previous?.unshielded, "unshielded"),
+    dust: pick(dust, previous?.dust, "dust"),
+  };
+
   mkdirSync(VAULT_DIR, { recursive: true });
   const path = walletCachePath();
-  writeFileSync(path, JSON.stringify({ shielded, unshielded, dust }), {
-    mode: 0o600,
-  });
-  console.log(`Wallet state cached → ${path} (future syncs resume from here)`);
+  // Write via a temp file and rename so a kill mid-write cannot leave a torn
+  // cache behind — rename is atomic within a filesystem.
+  const tmp = `${path}.tmp`;
+  writeFileSync(tmp, JSON.stringify(next), { mode: 0o600 });
+  renameSync(tmp, path);
+  const note = degraded.length > 0 ? ` (reused cached ${degraded.join(", ")})` : "";
+  console.log(`Wallet state cached → ${path}${note}`);
 }
 
 export function readSeed(path: string): string {
