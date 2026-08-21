@@ -56,3 +56,16 @@ export const formatCountdown = (ms: number): string => {
 
 export const shortHex = (hex: string, keep = 8): string =>
   hex.length <= keep * 2 + 1 ? hex : `${hex.slice(0, keep)}…${hex.slice(-keep)}`
+
+/**
+ * Group a hex string into fixed-width blocks.
+ *
+ * A 64-character hash is unreadable as one run and impossible to compare by
+ * eye. Chunking it lets someone verify a commitment against an explorer by
+ * scanning block-by-block, which is the whole point of publishing it.
+ */
+export const groupHex = (hex: string, size = 8): string => {
+  const clean = hex.replace(/^0x/, '')
+  if (clean.length <= size) return clean
+  return (clean.match(new RegExp(`.{1,${size}}`, 'g')) ?? [clean]).join(' ')
+}

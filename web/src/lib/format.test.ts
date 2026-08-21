@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatCountdown, formatDust, parseDust, shortHex } from './format'
+import { formatCountdown, formatDust, groupHex, parseDust, shortHex } from './format'
 
 describe('parseDust', () => {
   it('converts whole and fractional amounts to minor units', () => {
@@ -56,5 +56,22 @@ describe('shortHex', () => {
 
   it('leaves short values alone', () => {
     expect(shortHex('0123', 4)).toBe('0123')
+  })
+})
+
+describe('groupHex', () => {
+  it('splits a 64-char hash into eight readable blocks', () => {
+    const hash = 'e69a2875d952bc3efe324f3109c8f7f6ca48face518f261ef721e89fbddc138d'
+    const out = groupHex(hash)
+    expect(out.split(' ')).toHaveLength(8)
+    expect(out.replace(/ /g, '')).toBe(hash)
+  })
+
+  it('strips a 0x prefix so the blocks align', () => {
+    expect(groupHex('0xdeadbeefcafe', 4)).toBe('dead beef cafe')
+  })
+
+  it('leaves anything shorter than one block alone', () => {
+    expect(groupHex('abc', 8)).toBe('abc')
   })
 })
