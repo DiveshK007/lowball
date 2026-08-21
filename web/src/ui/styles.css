@@ -1,12 +1,18 @@
-/* LOWBALL — "Ice & Petrol".
+/* LOWBALL — "Ice & Petrol", refined against Apple's craft.
  *
  * A verification instrument, not a storefront. Cool light ground, slate ink,
- * geometric grotesk set tight, everything data-bearing in mono. One signal
- * colour — deep petrol — spent only where the chain reveals something.
+ * and one signal colour — deep petrol — spent only where the chain reveals
+ * something. Structure stays asymmetric: floating island nav, a hero whose
+ * type bleeds past the container, a bento of unequal tiles.
  *
- * Structure is deliberately asymmetric: a floating island nav detached from the
- * top, a hero whose type bleeds past the container, and a bento of unequal
- * tiles instead of equal card columns. Surfaces are trays holding cores.
+ * The discipline is borrowed from Apple, not the palette:
+ *   · SF Pro via -apple-system; tight negative tracking at EVERY size
+ *   · headlines compressed to 1.07 line-height, weights held to 400/600
+ *   · surfaces carry no borders — elevation comes from background contrast
+ *     plus a single soft diffused shadow, or nothing at all
+ *   · radius scale 8 / 12 / 980px pills; nav is saturated glass
+ *   · solid grounds, no competing texture
+ * Compression within, expansion between: type set tight, space set vast.
  */
 
 :root {
@@ -32,18 +38,28 @@
   --line-2: #cdd5da;
 
   /* shadows carry the ground's cool hue, never black */
-  --shade-1: 0 1px 2px rgb(26 32 36 / 6%);
-  --shade-2: 0 12px 28px -18px rgb(26 32 36 / 28%);
-  --shade-3: 0 40px 80px -44px rgb(26 32 36 / 38%);
-  --inset-hi: inset 0 1px 0 rgb(255 255 255 / 90%);
+  /* Apple uses one soft, wide, offset shadow — or nothing. Tinted with the
+     ground's hue rather than pure black. */
+  --shade-1: none;
+  --shade-2: 3px 5px 30px 0 rgb(26 32 36 / 10%);
+  --shade-3: 3px 5px 30px 0 rgb(26 32 36 / 16%);
+  --inset-hi: none;
 
-  --r-s: 8px;
-  --r: 14px;
-  --r-l: 20px;
-  --r-xl: 28px;
+  /* Apple's scale: 8 standard, 12 large, 980px pills. Nothing between. */
+  --r-s: 6px;
+  --r: 8px;
+  --r-l: 12px;
+  --r-xl: 12px;
+  --r-pill: 980px;
 
-  --display: 'Space Grotesk', 'Archivo', system-ui, sans-serif;
-  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+  /* SF Pro on Apple hardware via -apple-system: the real thing, licensed,
+     with optical sizing handled by the OS. Falls back gracefully elsewhere. */
+  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue',
+    Helvetica, Arial, sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* the wordmark keeps a thread of the original identity */
+  --brand: 'Space Grotesk', var(--display);
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* one weighted curve; springier variant for presses */
@@ -77,8 +93,9 @@ body {
   background: var(--ice);
   color: var(--slate);
   font-family: var(--sans);
-  font-size: 16px;
-  line-height: 1.62;
+  font-size: 17px; /* Apple's body size */
+  line-height: 1.47;
+  letter-spacing: -0.022em; /* ≈ -0.374px at 17px */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -90,12 +107,14 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.5;
+  /* Kept as the faintest trace of the drafting-paper idea. Apple's rule is
+     solid grounds; this sits just above the threshold of perception. */
+  opacity: 0.18;
   background-image:
     linear-gradient(to right, var(--line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--line) 1px, transparent 1px);
-  background-size: 88px 88px;
-  mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 78%);
+  background-size: 96px 96px;
+  mask-image: radial-gradient(110% 70% at 50% 0%, #000 10%, transparent 70%);
 }
 
 a {
@@ -115,8 +134,8 @@ h2,
 h3 {
   margin: 0;
   font-family: var(--display);
-  font-weight: 600;
-  line-height: 1.0;
+  font-weight: 600; /* Apple's ceiling for headlines */
+  line-height: 1.07; /* famously tight */
   letter-spacing: -0.035em;
   text-wrap: balance;
 }
@@ -181,17 +200,17 @@ p {
   width: min(1240px, 100% - 3rem);
   margin-inline: auto;
   padding: 0.6rem 0.7rem 0.6rem 1.25rem;
-  background: color-mix(in srgb, var(--paper) 82%, transparent);
-  backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  box-shadow: var(--inset-hi), var(--shade-2);
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  backdrop-filter: saturate(180%) blur(20px); /* Apple's exact glass */
+  border: none;
+  border-radius: var(--r-pill);
+  box-shadow: var(--shade-2);
 }
 
 .wordmark {
-  font-family: var(--display);
+  font-family: var(--brand);
   font-size: 1.06rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
   text-decoration: none;
   color: var(--slate);
@@ -219,12 +238,12 @@ p {
 }
 
 main {
-  padding-block: 3.5rem 4rem;
+  padding-block: 4.5rem 5.5rem;
 }
 
 .stack {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
 .row {
@@ -319,14 +338,15 @@ main {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.6rem 0.7rem 0.6rem 1.15rem;
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
+  border: none;
+  border-radius: var(--r-pill);
   background: var(--btn-bg);
-  box-shadow: var(--inset-hi), var(--shade-1);
+  box-shadow: var(--shade-2);
   color: var(--slate);
   font-family: var(--sans);
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: -0.018em;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -351,8 +371,7 @@ main {
 }
 
 .btn:hover:not(:disabled) {
-  border-color: var(--slate-2);
-  box-shadow: var(--inset-hi), var(--shade-2);
+  box-shadow: var(--shade-3);
   transform: translate3d(0, -1px, 0);
 }
 
@@ -389,9 +408,8 @@ main {
 /* the commit action — petrol, and only here */
 .btn--gold {
   background: var(--petrol);
-  border-color: var(--petrol-deep);
   color: #fff;
-  box-shadow: var(--inset-hi), 0 12px 26px -16px rgb(0 99 107 / 70%);
+  box-shadow: 3px 5px 30px 0 rgb(0 99 107 / 22%);
 }
 
 .btn--gold::after {
@@ -412,29 +430,29 @@ main {
 
 .card {
   background: var(--paper);
-  border: 1px solid var(--line);
+  border: none; /* Apple almost never shows a border on a surface */
   border-radius: var(--r-l);
-  padding: 1.7rem;
-  box-shadow: var(--inset-hi), var(--shade-1);
+  padding: 1.9rem;
+  box-shadow: var(--shade-2);
 }
 
 /* Tray + core, opt-in: a recessed frame holding a raised plate. Used where
    depth carries meaning (the ritual), not on every surface. */
 .tray {
   background: var(--ice-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  padding: 6px;
-  box-shadow: inset 0 1px 2px rgb(26 32 36 / 6%);
+  border: none;
+  border-radius: var(--r-l);
+  padding: 8px;
+  box-shadow: none; /* the recessed tone is the elevation cue */
 }
 
 .tray > .card__core,
 .card__core {
-  padding: 1.6rem;
-  border-radius: calc(var(--r-xl) - 6px);
+  padding: 1.8rem;
+  border-radius: var(--r);
   background: var(--paper);
-  border: 1px solid var(--line);
-  box-shadow: var(--inset-hi), var(--shade-1);
+  border: none;
+  box-shadow: var(--shade-2);
 }
 
 .muted {
@@ -447,7 +465,8 @@ main {
 
 .mono {
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  letter-spacing: -0.01em;
   word-break: break-all;
   color: var(--steel);
 }
@@ -460,7 +479,7 @@ a.mono {
   font-family: var(--mono);
   font-size: 0.65rem;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--steel);
 }
@@ -472,12 +491,12 @@ a.mono {
   gap: 0.9rem;
   align-items: flex-start;
   padding: 1rem 1.2rem;
-  border: 1px solid var(--line);
-  border-left-width: 2px;
+  border: none;
+  border-left: 2px solid var(--line-2);
   border-radius: var(--r);
   background: var(--paper);
-  box-shadow: var(--shade-1);
-  font-size: 0.9rem;
+  box-shadow: var(--shade-2);
+  font-size: 0.94rem;
 }
 
 .banner--warn { border-left-color: var(--petrol); }
@@ -494,13 +513,13 @@ a.mono {
 .hero {
   display: grid;
   gap: 1.4rem;
-  padding-block: 3.5rem 4rem;
+  padding-block: 4.5rem 5.5rem;
   max-width: 58rem;
 }
 
 .hero h1 {
   font-size: clamp(3rem, 8.5vw, 6.4rem);
-  line-height: 0.92;
+  line-height: 1.02;
   letter-spacing: -0.045em;
   margin-left: -0.055em; /* optical bleed: the cap aligns, not the box */
 }
@@ -547,17 +566,17 @@ a.mono {
   display: grid;
   gap: 0.6rem;
   align-content: start;
-  padding: 1.5rem;
-  border: 1px solid var(--line);
+  padding: 1.7rem;
+  border: none;
   border-radius: var(--r-l);
   background: var(--paper);
-  box-shadow: var(--shade-1);
+  box-shadow: var(--shade-2);
   height: 100%;
 }
 
 .tile--sunk {
   background: var(--ice-2);
-  box-shadow: none;
+  box-shadow: none; /* recessed, not raised */
 }
 
 .tile--signal {
@@ -629,11 +648,11 @@ a.mono {
 
 /* the feature drop tile fills its bento cell */
 .bento__tile--feature .drop-card {
-  padding: 1.7rem;
-  border: 1px solid var(--line);
+  padding: 1.9rem;
+  border: none;
   border-radius: var(--r-l);
   background: var(--paper);
-  box-shadow: var(--shade-1);
+  box-shadow: var(--shade-2);
   align-content: start;
 }
 
@@ -804,10 +823,10 @@ a.mono {
   grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
   gap: 1px;
   background: var(--line);
-  border: 1px solid var(--line);
+  border: none;
   border-radius: var(--r-l);
   overflow: hidden;
-  box-shadow: var(--shade-1);
+  box-shadow: var(--shade-2);
 }
 
 .split__pane {
@@ -835,8 +854,8 @@ a.mono {
   padding: 1.6rem 1.7rem;
   border-radius: var(--r-l);
   background: linear-gradient(165deg, var(--petrol-bright), var(--petrol-deep));
-  border: 1px solid var(--petrol-deep);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), 0 24px 54px -30px rgb(0 99 107 / 85%);
+  border: none;
+  box-shadow: 3px 5px 30px 0 rgb(0 99 107 / 26%);
   color: #fff;
   position: relative;
   overflow: hidden;
@@ -859,8 +878,8 @@ a.mono {
 
 .reveal-clock--revealed {
   background: var(--paper);
-  border-color: var(--line);
-  box-shadow: var(--inset-hi), var(--shade-1);
+  border: none;
+  box-shadow: var(--shade-2);
   color: var(--slate);
 }
 
@@ -895,7 +914,7 @@ a.mono {
   text-align: center;
   padding: 2.5rem 1.7rem;
   border-radius: var(--r-l);
-  border: 1px solid transparent;
+  border: none;
 }
 
 .verdict--win {
@@ -944,12 +963,12 @@ a.mono {
   gap: 0.65rem;
   position: relative;
   counter-increment: receipt;
-  padding: 1.7rem;
+  padding: 1.9rem;
   padding-left: 4.6rem;
-  border: 1px solid var(--line);
+  border: none;
   border-radius: var(--r-l);
   background: var(--paper);
-  box-shadow: var(--shade-1);
+  box-shadow: var(--shade-2);
 }
 
 /* the step number sits in the gutter, mono, petrol — a measurement, not decor */
