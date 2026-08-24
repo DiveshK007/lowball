@@ -33,6 +33,9 @@ const WEB_CIRCUITS = ['placeBid', 'checkWin']
 const copies = [
   ['contract/index.js', 'src/lib/midnight/generated/lowball/index.js'],
   ['contract/index.d.ts', 'src/lib/midnight/generated/lowball/index.d.ts'],
+  // index.js ends with a //# sourceMappingURL=index.js.map comment, so the map
+  // has to come along or every vitest run logs an ENOENT for the missing file.
+  ['contract/index.js.map', 'src/lib/midnight/generated/lowball/index.js.map'],
   ...ALL_CIRCUITS.flatMap((c) => [
     [`keys/${c}.verifier`, `public/keys/${c}.verifier`],
     [`zkir/${c}.bzkir`, `public/zkir/${c}.bzkir`],
