@@ -107,44 +107,7 @@ Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC /
 - tDUST for fees: register your tNIGHT for **DUST generation** in Lace and let it accrue (NIGHT does not pay fees directly)
 - **Compact compiler** — only needed to recompile the contract (see Setup)
 
-## Run Tests
-
-```
-npm test --prefix contract   # 6 contract tests (circuits, state, reveal tamper)
-npm test --prefix web        # 15 web tests (formatting + commitment hashes)
-```
-
-The web suite includes `web/src/lib/midnight/hashes.test.ts`, which asserts the
-receipts page reproduces a commitment the chain has **already accepted** — so the
-verification maths cannot silently drift from the contract's.
-
-## CI/CD
-
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to
-`main` and on every pull request, in two jobs:
-
-| Job | Steps |
-|---|---|
-| `compile + test contract` | checkout → Node 22 → install Compact compiler → `npm install` → `compact compile` → `vitest run` |
-| `build + test web` | checkout → Node 22 → `npm install` → `vitest run` → production `vite build` |
-
-Because CI compiles the Compact source on a clean runner, a green badge also
-proves the committed contract still compiles with the pinned toolchain — not just
-that the tests pass. Status badge is at the top of this file.
-
-## Product Proposal
-
-See **[PROPOSAL.md](PROPOSAL.md)** — the product, why Midnight specifically, the
-full public/private data model, and an honest mainnet-feasibility assessment.
-
-## Repo layout
-
-- `contract/` — Compact contract sources and build artifacts (`managed/` git-ignored).
-- `web/` — React + TypeScript + Vite dApp. SDK imports confined to `web/src/lib/midnight/`.
-- `ops/` — house-side TypeScript CLI (create-drop, close-and-reveal). Vault git-ignored.
-- `docs/` — design spec, architecture, spikes, submissions.
-
-## Setup
+## Setup & Run Locally
 
 Prereqs (macOS; Windows needs WSL):
 
@@ -199,6 +162,43 @@ Ops CLI (scaffold):
 ```
 cd ops && npm install && npm run build && node dist/index.js --help
 ```
+
+## Run Tests
+
+```
+npm test --prefix contract   # 6 contract tests (circuits, state, reveal tamper)
+npm test --prefix web        # 15 web tests (formatting + commitment hashes)
+```
+
+The web suite includes `web/src/lib/midnight/hashes.test.ts`, which asserts the
+receipts page reproduces a commitment the chain has **already accepted** — so the
+verification maths cannot silently drift from the contract's.
+
+## CI/CD
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to
+`main` and on every pull request, in two jobs:
+
+| Job | Steps |
+|---|---|
+| `compile + test contract` | checkout → Node 22 → install Compact compiler → `npm install` → `compact compile` → `vitest run` |
+| `build + test web` | checkout → Node 22 → `npm install` → `vitest run` → production `vite build` |
+
+Because CI compiles the Compact source on a clean runner, a green badge also
+proves the committed contract still compiles with the pinned toolchain — not just
+that the tests pass. Status badge is at the top of this file.
+
+## Product Proposal
+
+See **[PROPOSAL.md](PROPOSAL.md)** — the product, why Midnight specifically, the
+full public/private data model, and an honest mainnet-feasibility assessment.
+
+## Repo layout
+
+- `contract/` — Compact contract sources and build artifacts (`managed/` git-ignored).
+- `web/` — React + TypeScript + Vite dApp. SDK imports confined to `web/src/lib/midnight/`.
+- `ops/` — house-side TypeScript CLI (create-drop, close-and-reveal). Vault git-ignored.
+- `docs/` — design spec, architecture, spikes, submissions.
 
 ## Public ledger state vs private witness
 
