@@ -19,6 +19,7 @@ The only things ever made public are the things that keep the house honest: the 
 | **App** | **https://lowball-orpin.vercel.app** |
 | **Contract (Preview)** | [`ae971dc9…43c48408`](https://lowball-orpin.vercel.app/drop/drop-001) — **drop open now**, reads Preview chain state |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
+| **Demo video** | [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — wallet connect, sealed bid, verdict, tests, CI |
 
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preview**, and fund it at the [Preview faucet](https://faucet.preview.midnight.network/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
 
