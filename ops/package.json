@@ -10,8 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --enable-source-maps dist/index.js",
     "derive-address": "tsx src/derive-address.ts",
-    "create-drop": "tsx src/create-drop.ts",
-    "close-and-reveal": "tsx src/close-and-reveal.ts",
+    "create-drop": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/create-drop.ts",
+    "close-and-reveal": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/close-and-reveal.ts",
     "sync:contract": "rm -rf managed && mkdir -p managed && cp -R ../contract/src/managed/lowball managed/lowball"
   },
   "devDependencies": {
