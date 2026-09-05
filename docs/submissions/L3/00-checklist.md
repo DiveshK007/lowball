@@ -18,7 +18,9 @@
 ## Contract address (mandatory)
 
 **Preprod:** `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272`
-Deploy tx `0018b530…a6f632` · block 2,202,228 · verified on the Preprod indexer as `ContractDeploy`.
+Deploy tx `87611f96…a301025` · block 2,202,228 · verified on the Preprod indexer as `ContractDeploy`.
+(The tx hash previously recorded here, `0018b530…a6f632`, does not match the chain; the deploy
+transaction's hash at block 2,202,228 is `87611f96983aa39029dc4778d6b2688726d41d0b4c35e784b5b96df83a301025`.)
 
 ## Beyond the minimum
 
