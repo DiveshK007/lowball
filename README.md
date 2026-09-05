@@ -17,13 +17,25 @@ The only things ever made public are the things that keep the house honest: the 
 | | |
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
-| **Contract (Preview)** | [`ae971dc9…43c48408`](https://lowball-orpin.vercel.app/drop/drop-001) — **drop open now**, reads Preview chain state |
+| **Contract (Preview)** | [`ae971dc9…43c48408`](https://lowball-orpin.vercel.app/drop/drop-001) — **no open drop right now**; reads Preview chain state |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 | **Demo video** | [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — wallet connect, sealed bid, verdict, tests, CI |
 
+> **Current chain state.** The Genesis Envelope drop on `ae971dc9…` completed its full
+> loop and is **closed** — the reserve was revealed and the win claimed on 2026-08-22
+> (`checkWin`, block 525,755). Browsing the gallery, the drop page and the public
+> receipts all still work and need no wallet. **Placing a bid does not**, until the
+> next drop is deployed. Verify with a single query against the Preview indexer:
+>
+> ```bash
+> curl -s -X POST https://indexer.preview.midnight.network/api/v3/graphql \
+>   -H 'content-type: application/json' \
+>   -d '{"query":"{contractAction(address:\"ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408\"){__typename ... on ContractCall{entryPoint}}}"}'
+> ```
+
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preview**, and fund it at the [Preview faucet](https://faucet.preview.midnight.network/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
 
-The 60-second walkthrough:
+The 60-second walkthrough (steps 3–5 need an open drop; see the note above):
 
 1. Open the gallery, click **Genesis Envelope**.
 2. **Connect Lace** — the app checks the extension is present, on the right network, and answering.
@@ -37,10 +49,15 @@ The 60-second walkthrough:
 | Network | Address |
 |---|---|
 | **Preprod** | **`1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272`** |
-| Preview (live drop) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` |
-| Preview (L1 record) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
+| Preview (full loop) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` |
+| Preview (L1 record, reveal only) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` |
 
-Deployed to **Preprod** at block 2,202,228 (deploy tx `0018b530…a6f632`), verified on the Preprod indexer as a `ContractDeploy`. The contract holds one drop for its lifetime (`createDrop` asserts the slot is unset), so each new drop is a new deployment. The **Preview live drop** has a drop open now; the **Preview L1 record** contract is the original deploy that carried the full loop end to end — bid `7a5179ff…dc45`, reveal `001a55f2…be7ea5`, verdict win at 30 over a 25 tDUST reserve — kept because that is the evidence L1/L2 were judged on.
+Deployed to **Preprod** at block 2,202,228 (deploy tx `87611f96…a301025`, 2026-08-21), verified on the Preprod indexer as a `ContractDeploy`. **No drop has been created on it yet** — the address has zero contract calls, so it is a bare deploy. The contract holds one drop for its lifetime (`createDrop` asserts the slot is unset), so each new drop is a new deployment.
+
+The two Preview addresses, as the chain records them:
+
+- **`ae971dc9…` (full loop)** — the **Genesis Envelope** drop. Reached `checkWin` at block 525,755 on 2026-08-22 (tx `1860cb96…de14df`): reserve sealed, bid placed, reserve revealed, **win claimed at 30 over a 25 tDUST reserve**. This is the contract that carried the loop end to end, and the one the deployed app currently reads.
+- **`e5f6d470…` (L1 record)** — the original L1 deploy. Its furthest call is `revealReserve` at block 224,316 on 2026-08-01 (tx `876b0662…d928efe`): reserve revealed, **no win claimed**. Kept because it is the evidence L1 was judged on.
 
 L1 first deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085), because Preprod's ~1.45M-event dust genesis replay is a multi-hour, memory-hungry job ([`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)). Preprod was reached in the end **without a cloud VM**, by checkpointing the wallet state every 5 minutes and migrating the resulting snapshot between machines — see [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md) for both routes. That cache (`ops/vault/wallet-cache-preprod.json`, git-ignored) is retained, so later Preprod deploys resume from the tip instead of replaying genesis. Full evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md), [`03-preprod-deploy.md`](docs/submissions/L1/03-preprod-deploy.md).
 
