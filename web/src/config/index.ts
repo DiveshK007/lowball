@@ -6,8 +6,8 @@
 
 export type NetworkId = 'preprod' | 'preview' | 'mainnet' | 'undeployed'
 
-const PREVIEW_INDEXER = 'https://indexer.preview.midnight.network/api/v3/graphql'
-const PREVIEW_INDEXER_WS = 'wss://indexer.preview.midnight.network/api/v3/graphql/ws'
+const PREPROD_INDEXER = 'https://indexer.preprod.midnight.network/api/v3/graphql'
+const PREPROD_INDEXER_WS = 'wss://indexer.preprod.midnight.network/api/v3/graphql/ws'
 
 const env = import.meta.env
 
@@ -19,17 +19,21 @@ const trimmed = (value: string | undefined): string | null => {
 /** The connector API versions this app is built against (semver range). */
 export const COMPATIBLE_CONNECTOR_API_VERSION = '4.x'
 
-const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preview') as NetworkId
+const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preprod') as NetworkId
 
 /**
- * The live LOWBALL contract on Preview (deployed at block 499249). Baked as the
- * default so a fresh clone or a Vercel build with no env vars still points at
- * the live drop; VITE_CONTRACT_ADDRESS overrides it for other deploys.
+ * The live LOWBALL contract on Preprod (deployed at block 2,419,510). Baked as
+ * the default so a fresh clone or a Vercel build with no env vars still points
+ * at the live drop; VITE_CONTRACT_ADDRESS overrides it for other deploys.
+ *
+ * The project consolidated Preview -> Preprod on 2026-09-05 (decisions log §10):
+ * L4 requires the MVP live on Preprod, and running two networks meant the
+ * shipped app never actually read the address being submitted.
  */
-const PREVIEW_CONTRACT =
-  'ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408'
+const PREPROD_CONTRACT =
+  '""" + ADDR + """'
 
-/** Per-network faucet + explorer roots. L1/L2 run on Preview (see README). */
+/** Per-network faucet + explorer roots. The app runs on Preprod (see README). */
 const FAUCET: Record<NetworkId, string> = {
   preview: 'https://faucet.preview.midnight.network/',
   preprod: 'https://midnight-tmnight-preprod.nethermind.dev/',
@@ -51,10 +55,10 @@ export const config = {
    * Address of the deployed LOWBALL contract. `null` until the deploy lands —
    * the UI stays browsable and every bid affordance explains why it is off.
    */
-  contractAddress: trimmed(env.VITE_CONTRACT_ADDRESS) ?? PREVIEW_CONTRACT,
+  contractAddress: trimmed(env.VITE_CONTRACT_ADDRESS) ?? PREPROD_CONTRACT,
 
-  indexerUri: trimmed(env.VITE_INDEXER_URI) ?? PREVIEW_INDEXER,
-  indexerWsUri: trimmed(env.VITE_INDEXER_WS_URI) ?? PREVIEW_INDEXER_WS,
+  indexerUri: trimmed(env.VITE_INDEXER_URI) ?? PREPROD_INDEXER,
+  indexerWsUri: trimmed(env.VITE_INDEXER_WS_URI) ?? PREPROD_INDEXER_WS,
 
   /** Used only when the connected wallet reports no prover of its own. */
   proofServerUri: trimmed(env.VITE_PROOF_SERVER_URI) ?? 'http://127.0.0.1:6300',
