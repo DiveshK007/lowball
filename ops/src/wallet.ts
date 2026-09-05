@@ -114,7 +114,11 @@ const VAULT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..", "vault"
 const walletCachePath = (): string =>
   resolve(VAULT_DIR, `wallet-cache-${resolveNetwork().name}.json`);
 
-type WalletCache = { shielded: unknown; unshielded: unknown; dust: string };
+type WalletCache = {
+  shielded: unknown | null;
+  unshielded: unknown | null;
+  dust: string | null;
+};
 
 const readWalletCache = (): WalletCache | null => {
   const path = walletCachePath();
@@ -175,7 +179,10 @@ export async function persistWalletCache(ctx: WalletContext): Promise<void> {
     label: string,
   ): T => {
     if (result.status === "fulfilled") return result.value;
-    if (fallback === undefined) {
+    // `null` is a deliberately dropped blob (see LOWBALL_RESET_DUST), not a
+    // usable fallback — treat it like "no cached value" and skip the write
+    // rather than persisting a hole over a ledger that is mid-replay.
+    if (fallback === undefined || fallback === null) {
       throw new Error(
         `cannot checkpoint: ${label} failed to serialize and has no cached value ` +
           `(${result.reason instanceof Error ? result.reason.message.split("\n")[0] : result.reason})`,
@@ -310,17 +317,17 @@ export async function startWallet(
     const wallet = await WalletFacade.init({
       configuration: walletConfig,
       shielded: (c) =>
-        (shieldedWallet = cache
+        (shieldedWallet = cache?.shielded
           ? ShieldedWallet(c).restore(cache.shielded as any)
           : ShieldedWallet(c).startWithSecretKeys(shieldedSecretKeys)),
       unshielded: (c) =>
-        (unshieldedWallet = cache
+        (unshieldedWallet = cache?.unshielded
           ? UnshieldedWallet(c).restore(cache.unshielded as any)
           : UnshieldedWallet(c).startWithPublicKey(
               PublicKey.fromKeyStore(unshieldedKeystore),
             )),
       dust: (c) =>
-        (dustWallet = cache
+        (dustWallet = cache?.dust
           ? DustWallet(c).restore(cache.dust)
           : DustWallet(c).startWithSecretKey(
               dustSecretKey,
@@ -332,7 +339,22 @@ export async function startWallet(
   };
 
   const cache = readWalletCache();
-  if (cache) console.log(`Restoring wallet from cache (skips genesis replay)...`);
+  // A cached dust state can be internally consistent yet refuse to replay
+  // against the live stream ("values inserted non-linearly into dust commitment
+  // tree"), which wedges the subscription: the applied counter freezes, the SDK
+  // swallows the error, and waitForSync never settles. LOWBALL_RESET_DUST drops
+  // just that blob so dust replays from genesis while the cheap shielded and
+  // unshielded states still restore.
+  if (cache && process.env.LOWBALL_RESET_DUST) {
+    cache.dust = null;
+    console.log(`LOWBALL_RESET_DUST set — dust will replay from genesis.`);
+  }
+  if (cache) {
+    const kept = (["shielded", "unshielded", "dust"] as const).filter(
+      (k) => cache[k],
+    );
+    console.log(`Restoring wallet from cache (${kept.join(", ") || "nothing"} cached)...`);
+  }
   let built;
   try {
     built = await build(cache);
