@@ -31,7 +31,7 @@ const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preprod') as NetworkId
  * shipped app never actually read the address being submitted.
  */
 const PREPROD_CONTRACT =
-  '""" + ADDR + """'
+  '3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446'
 
 /** Per-network faucet + explorer roots. The app runs on Preprod (see README). */
 const FAUCET: Record<NetworkId, string> = {
