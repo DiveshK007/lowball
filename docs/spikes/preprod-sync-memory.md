@@ -1,5 +1,11 @@
 # Spike: Preprod wallet-sync memory ceiling
 
+> **Partly superseded (2026-09-05).** The heap findings below were measured while
+> shielded *and* dust replayed together. With per-sub-wallet cache restore, shielded
+> restores from cache and only dust replays, so raising `--max-old-space-size` to 9 GB
+> does help and the 4 GB default is the binding limit. See decisions log §10,
+> entry 2026-09-05 (L4).
+
 **Question:** can the house wallet sync Preprod and deploy the L1 contract
 from this dev machine (16 GB RAM)?
 
