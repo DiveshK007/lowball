@@ -1,142 +1,94 @@
 # LOWBALL — Handoff
 
-**Written 2026-09-05.** Baseline commit: `ae4cb0c` (2026-08-24).
+**Updated 2026-09-05** (supersedes the 2026-09-05 morning version written at `ae4cb0c`).
 
 For an assistant or contributor who has only this repository. Everything below was
-verified against the working tree, GitHub, the deployed Vercel bundle, and the
-Midnight indexers on 2026-09-05. Where a claim could not be verified, it says so.
+verified against the working tree, GitHub, the deployed Vercel bundle, and the Midnight
+indexers. Where a claim could not be verified, it says so.
 
 ---
 
-## 1. What changed since `ae4cb0c`
+## 1. Current state
 
-**Nothing. This document is the first commit since `ae4cb0c`.**
+**The app runs on Preprod, with a live open drop.** The project consolidated off Preview
+on 2026-09-05; before that, the shipped app read Preview while a Preprod address with no
+drop on it was being submitted to the program.
 
-That is not a summary of small changes — it is literally zero. Verified:
+| | |
+|---|---|
+| **App** | https://lowball-orpin.vercel.app |
+| **Contract** | `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` |
+| **Deploy** | block 2,419,510 · tx `79061bfb…3565bc78` |
+| **Drop opened** | block 2,419,536 · tx `1a34b5cd…fbaabba3` (`createDrop`) |
+| **Drop** | Genesis Envelope · 25 tDUST sealed reserve · stock 1 · closes **2026-09-19 17:35 UTC** |
 
-- `git diff HEAD` is empty; every tracked file is byte-identical to `ae4cb0c`.
-- No stashes, no branches other than `main`, no worktrees, and the reflog's newest
-  entry *is* `ae4cb0c` — nothing was reset, amended, or orphaned.
-- The only uncommitted paths are git-ignored: `web/dist/`, `ops/dist/`,
-  `contract/midnight-level-db/`, `.claude/settings.local.json`, `.DS_Store`.
-- The newest file anywhere in the repo is dated **2026-08-25 09:17**, and every
-  file with that timestamp is a build output. `README.md` and
-  `web/scripts/sync-contract.mjs` carry newer mtimes but identical content —
-  touched by a rebuild, not edited.
+Verify without a wallet — `entryPoint: "createDrop"` means open and unbid:
 
-Working sessions did take place between Aug 24 and Aug 30. They produced no code,
-no docs, and no commits. **Do not assume undocumented work exists somewhere.** The
-repository at `ae4cb0c` is the complete state of the project.
+```bash
+curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
+  -H 'content-type: application/json' \
+  -d '{"query":"{contractAction(address:\"3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446\"){__typename ... on ContractCall{entryPoint}}}"}'
+```
 
-Consequence for the program: the L4 commit window currently contains **0 commits**.
+Superseded addresses, kept in the README because they are the evidence earlier levels
+were judged on: `1e7b6dee…` (Preprod, bare deploy, never had a drop), `ae971dc9…`
+(Preview, full loop, win claimed), `e5f6d470…` (Preview, L1 record, reveal only).
 
----
+## 2. L4 status
 
-## 2. L4 status against its checklist
+| Requirement | Status |
+|---|---|
+| MVP live on Preprod (verifiable address) | ✅ |
+| Live Preprod demo link | ✅ verified in the deployed bundle |
+| README + setup docs | ✅ |
+| CI/CD passing | ✅ |
+| Demo video | ✅ https://youtu.be/om0mTpbdXiU |
+| **`docs/USAGE.md`** | ❌ **not written** |
+| **X product profile** | ❌ **does not exist** — handle candidates only, in `docs/traction.md` |
+| **15+ commits in window** | ⏳ accumulating since 2026-09-05 |
 
-| Requirement | Status | Evidence |
-|---|---|---|
-| MVP live on Preprod (verifiable address) | ⚠️ **Partial** | Address `1e7b6dee…6263272` deploys and verifies, but has **zero contract calls** — no drop exists on it, and the live app does not target it. See §3. |
-| README + setup docs | ✅ | `README.md` has Prerequisites, Setup & Run Locally, Run Tests, CI/CD, Repo layout. |
-| Usage docs (`docs/USAGE.md`) | ❌ **Missing** | File does not exist. |
-| CI/CD passing | ⚠️ **Green but stale** | Two jobs (`compile + test contract`, `build + test web`), last run `32689123691`, success, **2026-08-24**. Nothing since. |
-| X product profile linked | ❌ **Does not exist** | `docs/traction.md` names a *planned* handle `@lowballdrops` (fallbacks `@lowball_xyz`, `@playlowball`). No profile is live and nothing links to one. |
-| 15+ commits | ❌ **0 in window** | 88 commits total, none since 2026-08-24. |
-| Demo video | ✅ | https://youtu.be/om0mTpbdXiU (unlisted), linked from README. |
-| Live Preprod demo link | ❌ | The live link is a **Preview** deployment, not Preprod. See §3. |
+The idea proposal was **approved at The Turn** (confirmed on or before 2026-09-05),
+which opened L4 and L5. Recorded in `docs/submissions/L4/00-checklist.md` and
+decisions log §10, because nothing else in the repo captured it.
 
-Tests: 3 test files — `contract/src/test/lowball.test.ts`,
-`web/src/lib/format.test.ts`, `web/src/lib/midnight/hashes.test.ts`.
+## 3. Traps this repo has already sprung
 
----
+Read these before changing networks or touching the wallet scripts.
 
-## 3. Which network the deployed app actually targets
+1. **`web/.env` is git-ignored and has never been committed.** The deployed app takes
+   its configuration from the **defaults in `web/src/config/index.ts`**, never from
+   `.env`. This is exactly how the app silently kept reading Preview: local runs looked
+   right because `.env` supplied the right values. Keep the defaults and
+   `web/.env.example` in step, and **verify the built artefact, not the source**.
+2. **The house scripts print a `txId` that is not the transaction hash.** It is a
+   69-character *identifier*; the indexer and explorers key on a 64-character hash.
+   A wrong hash sat in the README and the L3 checklist for weeks because of this.
+3. **A wedged dust sync does not fail — it freezes.** The SDK swallows the replay error,
+   so nothing throws and no retry is logged; the `applied` counter simply stops. Judge
+   progress by the counter, never by waiting for an exit.
+4. **Preprod wallet sync needs a raised heap.** The default 4 GB V8 limit OOMs during a
+   dust replay. `deploy:preprod`, `create-drop` and `close-and-reveal` set
+   `--max-old-space-size=9216`.
+5. **A new drop means a new deployment.** `createDrop` asserts the slot is unset, so the
+   contract holds exactly one drop for its lifetime.
 
-**Preview. Not Preprod.**
+## 4. Operational notes
 
-Verified by fetching the live bundle from https://lowball-orpin.vercel.app and
-grepping the deployed JS chunks (`index-ByxWSzgZ.js`, `providers-DD_G4Aeh.js`):
-
-- `indexer.preview.midnight.network` — present
-- contract `ae971dc989e4…343c48408` — present
-- Preprod indexer or the Preprod address — **absent**
-
-This comes from `web/.env`, which is committed and pins
-`VITE_NETWORK_ID=preview` plus the Preview contract address.
-
-### Is there a live drop on that network?
-
-**A drop exists, but it is closed.** Three contracts are in play:
-
-| Contract | Network | Latest on-chain action | Meaning |
-|---|---|---|---|
-| `ae971dc9…343c48408` | Preview | `ContractCall` → entryPoint **`checkWin`** | Drop **"Genesis Envelope"** exists; reserve revealed and a **win already claimed**. Not open. |
-| `e5f6d470…3f7c4fc11` | Preview | `ContractCall` → entryPoint **`revealReserve`** | Reserve revealed; no successful `checkWin`. |
-| `1e7b6dee…6263272` | Preprod | **`ContractDeploy`** | **Never called.** No drop was ever created on Preprod. |
-
-`checkWin` asserts `status == DropStatus.REVEALED`, so its presence on `ae971dc9`
-proves that drop is past OPEN. The contract holds one drop for its lifetime
-(`createDrop` asserts the slot is unset), so **a new drop requires a new deployment.**
-
----
-
-## 4. Broken, half-finished, or blocked
-
-**Broken — the README makes two false claims about live state.**
-
-1. `README.md` §Live Demo says the Preview contract has a **"drop open now"**. It
-   does not; `checkWin` has been called. A visitor following the README's
-   60-second walkthrough cannot place a bid — steps 3 through 5 are dead.
-2. `README.md` §Contract Address attributes the completed end-to-end loop
-   ("verdict win at 30 over a 25 tDUST reserve") to the **Preview L1 record**
-   contract `e5f6d470…`. On-chain, that contract's last action is `revealReserve`
-   — the win was claimed on `ae971dc9…` instead. The two contracts' descriptions
-   appear to be swapped.
-
-**Half-finished.**
-
-3. `docs/USAGE.md` does not exist (L4 requirement).
-4. Preprod is a bare deploy. To make "MVP live on Preprod" true, a drop must be
-   created there **and** `web/.env` repointed at Preprod — currently neither.
-5. The X product profile is planned only. `docs/traction.md` has the handle
-   candidates, three post formats, and a 2–3/week drop calendar, with a hard rule
-   never to publish any bid amount, including the winner's. None of it is executed.
-
-**Blocked on the repo owner (cannot be resolved from the repo).**
-
-6. Creating a new drop needs the house CLI in `ops/` and its vault, which is
-   git-ignored and never committed. No assistant working from the repo alone can
-   deploy a contract or open a drop.
-7. Registering the X handle and posting.
-8. Whether to redeploy on Preprod (satisfies L4 literally, costs the multi-hour
-   genesis sync unless the checkpoint cache in `ops/vault/wallet-cache-preprod.json`
-   still resumes) or stay on Preview (fast, but fails the L4 wording).
-
----
+- **Node 22 required**: `PATH="/Users/bond/.nvm/versions/node/v22.18.0/bin:$PATH"`.
+- **Proof server**: `docker run -d --name lowball-proof-server -p 6300:6300 midnightntwrk/proof-server:latest midnight-proof-server -v`, expect HTTP 200 on `127.0.0.1:6300`.
+- **Long syncs**: `ops/sync-preprod.sh` supervises a Preprod sync to completion —
+  it restarts to reset the working set early on (throughput decays as the dust state
+  grows), stops cycling past 60% because a large restore then costs more than it saves,
+  and restarts on a genuine stall. Checkpoints land every 5 minutes and are resumable.
+- **Never commit**: reserve preimages/salts (`ops/vault/drop-*.json`), private keys,
+  anything under `ops/vault/`, or `.env` files.
 
 ## 5. Open questions
 
-1. **Was the L3 idea proposal approved at The Turn?** The repo owner stated on
-   2026-09-05 that it was approved and that **L4 and L5 are now open**. No
-   artifact in this repository records the approval; treat the owner's word as
-   the source and file the confirmation somewhere durable.
-2. L2/L3 drew a **"no commits in August"** response. That is wrong about this
-   repo — 47 commits carry August 2026 dates (Aug 8–24) and GitHub attributes
-   every one to `DiveshK007`. The likeliest mechanism is a window that opened
-   after Aug 24, since there are **zero commits Aug 25–31**. Unresolved with the
-   program.
-3. Should the L4 submission target Preview or Preprod? This decides items 4 and 8
-   above and is the largest single blocker.
-4. Which X handle is actually registered, once one is?
-5. Does the Preprod wallet checkpoint still resume from the tip, or has it aged
-   out into a full genesis replay?
-
----
-
-## Quick reference
-
-- Repo: https://github.com/DiveshK007/lowball (public) · App: https://lowball-orpin.vercel.app
-- Read `docs/superpowers/specs/2026-07-19-lowball-design.md` (what) and
-  `docs/architecture.md` (how) before writing code; decisions log is spec §10.
-- Never commit reserve preimages/salts, private keys, `ops/` vault files, or `.env` files
-  beyond the already-committed `web/.env`.
+1. Should the next drop reuse this contract? It cannot — a new drop requires a new
+   deployment, and each deployment currently costs a full Preprod wallet sync unless the
+   checkpoint at `ops/vault/wallet-cache-preprod.json` is still restorable.
+2. L2/L3 drew a **"no commits in August"** response that is wrong about this repo — 47
+   commits carry August 2026 dates and GitHub attributes all of them. There are zero
+   commits Aug 25–31, which is the likeliest mechanism. Unresolved with the program.
+3. Which X handle will actually be registered.
