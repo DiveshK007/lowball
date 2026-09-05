@@ -8,7 +8,6 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
-  rmSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -104,6 +103,10 @@ export type WalletContext = {
   shieldedWallet: { serializeState(): Promise<unknown> };
   unshieldedWallet: { serializeState(): Promise<unknown> };
   dustWallet: { serializeState(): Promise<string> };
+  // The shielded blob this run restored from, if any. Re-serializing shielded
+  // produces state that this SDK pairing cannot read back, so a blob already
+  // proven to restore is worth more than a fresh one — see persistWalletCache.
+  restoredShielded: unknown | null;
 };
 
 // --- Synced-state cache (skip genesis replay on subsequent runs) ----------
@@ -193,7 +196,12 @@ export async function persistWalletCache(ctx: WalletContext): Promise<void> {
   };
 
   const next: WalletCache = {
-    shielded: pick(shielded, previous?.shielded, "shielded"),
+    // Keep a shielded blob that has already proven it can be restored. A fresh
+    // serialization round-trips to "state.pendingOutputs.values.map is not a
+    // function", which would make the next restart drop shielded entirely; the
+    // proven blob only costs a short catch-up instead.
+    shielded:
+      ctx.restoredShielded ?? pick(shielded, previous?.shielded, "shielded"),
     unshielded: pick(unshielded, previous?.unshielded, "unshielded"),
     dust: pick(dust, previous?.dust, "dust"),
   };
@@ -355,18 +363,41 @@ export async function startWallet(
     );
     console.log(`Restoring wallet from cache (${kept.join(", ") || "nothing"} cached)...`);
   }
-  let built;
-  try {
-    built = await build(cache);
-  } catch (e) {
-    if (!cache) throw e;
-    console.warn(
-      `Cache restore failed (${e instanceof Error ? e.message : e}); ` +
-        `discarding it and syncing from genesis.`,
-    );
-    rmSync(walletCachePath(), { force: true });
-    built = await build(null);
+  // Restore is a ladder, not all-or-nothing. A single unrestorable blob used to
+  // wipe the whole file — including the dust state, which is the only part that
+  // costs hours to rebuild. In practice it is *shielded* that fails to survive a
+  // serialize/restore round trip on this SDK pairing
+  // ("state.pendingOutputs.values.map is not a function", the same version skew
+  // noted in decisions log §10, 2026-07-30), so shielded is dropped before dust
+  // is ever considered, and the cache file is never deleted.
+  const attempts: Array<{ label: string; cache: WalletCache | null }> = cache
+    ? [
+        { label: "full cache", cache },
+        {
+          label: "dust only (shielded/unshielded rebuilt)",
+          cache: { ...cache, shielded: null, unshielded: null },
+        },
+        { label: "genesis", cache: null },
+      ]
+    : [{ label: "genesis", cache: null }];
+
+  let built: Awaited<ReturnType<typeof build>> | undefined;
+  let restoredShielded: unknown | null = null;
+  for (let i = 0; i < attempts.length; i++) {
+    const { label, cache: attempt } = attempts[i];
+    try {
+      built = await build(attempt);
+      restoredShielded = attempt?.shielded ?? null;
+      break;
+    } catch (e) {
+      if (i === attempts.length - 1) throw e;
+      console.warn(
+        `Restore from ${label} failed (${e instanceof Error ? e.message : e}); ` +
+          `falling back to ${attempts[i + 1].label}.`,
+      );
+    }
   }
+  if (!built) throw new Error("wallet build produced no result");
 
   return {
     wallet: built.wallet,
@@ -377,6 +408,7 @@ export async function startWallet(
     shieldedWallet: built.shieldedWallet,
     unshieldedWallet: built.unshieldedWallet,
     dustWallet: built.dustWallet,
+    restoredShielded,
   };
 }
 
