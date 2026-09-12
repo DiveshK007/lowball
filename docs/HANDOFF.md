@@ -1,6 +1,6 @@
 # LOWBALL — Handoff
 
-**Updated 2026-09-12.**
+**Updated 2026-09-12** (bid accumulator).
 
 For an assistant or contributor who has only this repository. Everything below was
 verified against the working tree, GitHub, the deployed Vercel bundle, and the Midnight
@@ -10,17 +10,18 @@ indexers. Where a claim could not be verified, it says so.
 
 ## 1. Current state
 
-**The app runs on Preprod, on a multi-drop contract with two drops open.** The project
-consolidated off Preview on 2026-09-05, and moved from one-drop-per-deployment to a
-multi-drop contract on 2026-09-12.
+**The app runs on Preprod, on a multi-drop contract with two drops open, and every
+bidder on a drop can prove their own win.** Preview → Preprod on 2026-09-05; multi-drop
+on 2026-09-12; bid accumulation the same day.
 
 | | |
 |---|---|
 | **App** | https://lowball-orpin.vercel.app |
-| **Contract** | `edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7` (multi-drop) |
-| **Deploy** | block 2,519,627 · tx `00ff84df…08cdc1e7` |
-| **Drops open** | `drop-001` Genesis Envelope, stock 1 (block 2,519,652) · `drop-002` Second Envelope, stock 2 (block 2,519,671) |
+| **Contract** | `72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1` (multi-drop + bid accumulator) |
+| **Deploy** | block 2,520,320 |
+| **Drops open** | `drop-001` Genesis Envelope, stock 1 · `drop-002` Second Envelope, stock 2 |
 | **Both close** | **2026-11-01** — deliberately past the end-of-September judging window |
+| **Proof drop** | `drop-proof` — closed; 3 distinct bidders, 3 sealed bids, **3 winners** |
 
 Reserves are sealed; only their commitments are public. **Never publish a live drop's
 reserve.** It was leaked into the README once and went unnoticed for a week (fixed
@@ -31,11 +32,12 @@ Verify without a wallet — `entryPoint: "createDrop"` means open and unbid:
 ```bash
 curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"{contractAction(address:\"edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7\"){__typename ... on ContractCall{entryPoint}}}"}'
+  -d '{"query":"{contractAction(address:\"72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1\"){__typename ... on ContractCall{entryPoint}}}"}'
 ```
 
 Superseded addresses, kept in the README because they are the evidence earlier levels
-were judged on: `3fac6305…` (Preprod, single-drop, one drop closing 2026-09-19),
+were judged on: `edae3255…` (Preprod, multi-drop but single-bid-slot),
+`3fac6305…` (Preprod, single-drop, one drop closing 2026-09-19),
 `1e7b6dee…` (Preprod, bare deploy, never had a drop), `ae971dc9…`
 (Preview, full loop, win claimed), `e5f6d470…` (Preview, L1 record, reveal only).
 
@@ -74,7 +76,15 @@ Read these before changing networks or touching the wallet scripts.
 4. **Preprod wallet sync needs a raised heap.** The default 4 GB V8 limit OOMs during a
    dust replay. `deploy:preprod`, `create-drop` and `close-and-reveal` set
    `--max-old-space-size=9216`.
-5. **A new drop no longer needs a deployment.** Since 2026-09-12 one contract holds many
+5. **Recompiling the contract is not enough — `ops/managed/` must be re-synced.**
+   `contract/scripts/deploy.ts` imports the `Contract` class from `ops/managed/` on
+   purpose (one runtime tree), so a deploy after a recompile without
+   `npm --prefix ops run sync:contract` ships the **previous** contract, silently. This
+   happened once and only surfaced as a puzzling `bid preimage mismatch` on chain.
+   `predeploy:preprod` and the ops `pre*` hooks now run the sync automatically.
+6. **Run wallet sessions strictly sequentially.** Two overlapping sessions produced
+   `key (segment_id) collision during intents merge`; re-running alone succeeded.
+7. **A new drop no longer needs a deployment.** Since 2026-09-12 one contract holds many
    drops, keyed by a 32-byte id (the slug, UTF-8 zero-padded); `create-drop` takes
    `DROP_ID`. Three Compact traps came with it: a `lookup` of a missing key is a
    *dynamic error*, so guard every read with `member()`; nested ledger values need
@@ -94,10 +104,11 @@ Read these before changing networks or touching the wallet scripts.
 
 ## 5. Open questions
 
-1. **Only the latest bid per drop can win.** `dropLatestBid` records one commitment per
-   drop, so at L5's 50 bidders 49 cannot pass `checkWin`. This is the next blocker; it
-   needs a set or Merkle accumulator of bid commitments plus a membership proof in
-   `checkWin`. See `docs/superpowers/plans/2026-09-12-multi-drop.md`.
+1. **Stock is not enforced on a win.** Every bidder clearing the reserve wins, so a
+   stock-1 drop can record many winners. Architecture §3.3 specifies `stock -= 1` on a
+   win, which needs a rule for which clearing bidders win when there are more of them
+   than stock (bid-order priority, per decisions log §10, 2026-07-19). This is the next
+   open question and a product decision, not a mechanical fix.
 2. L2/L3 drew a **"no commits in August"** response that is wrong about this repo — 47
    commits carry August 2026 dates and GitHub attributes all of them. There are zero
    commits Aug 25–31, which is the likeliest mechanism. Unresolved with the program.

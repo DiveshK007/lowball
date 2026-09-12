@@ -69,9 +69,16 @@ the same information as **flattened sibling maps keyed by the same `dropId`**:
 
 ```
 dropStatus, dropCommitment, dropStock, dropCloseTime, dropMetaRef,
-dropBidCount, dropLatestBid, dropRevealed, dropWinnerFound : Map<Bytes<32>, …>
-dropCount : Counter
+dropBidCount, dropRevealed                    : Map<Bytes<32>, …>
+dropBids, dropWinners                         : Map<Bytes<32>, Set<Bytes<32>>>
+dropCount                                     : Counter
 ```
+
+`dropBids` accumulates every bid commitment on a drop and `dropWinners` records which of
+them claimed. They replaced a single `dropLatestBid` slot on 2026-09-12: one slot meant
+each new bid overwrote the last, so only the most recent bidder could ever pass
+`checkWin`. `dropWinnerFound` went too — `dropWinners.size() > 0` answers it and cannot
+drift.
 
 Two reasons, both discovered while building it. A struct value forces a whole-record
 read-modify-write on every bid, and a `Cell` read commits the transaction to that
@@ -80,8 +87,9 @@ concurrency L5 exists to demonstrate; `Counter.increment` has no such constraint
 flattening keeps the ledger readable by indexers that cannot decode structs. `dropId` is
 the drop slug as UTF-8 zero-padded to 32 bytes.
 
-Not yet built: `claims`, `admin`, `EXPIRED`, and the `CLOSED` phase (status goes
-`UNSET → OPEN → REVEALED`). See decisions log §10, 2026-09-12.
+Not yet built: `claims`, `admin`, `EXPIRED`, the `CLOSED` phase (status goes
+`UNSET → OPEN → REVEALED`), and `stock -= 1` on a win. See decisions log §10,
+2026-09-12.
 
 **Private state / witnesses** (never on ledger):
 
