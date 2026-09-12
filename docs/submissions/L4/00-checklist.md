@@ -16,7 +16,7 @@ decisions log §10 in `docs/superpowers/specs/2026-07-19-lowball-design.md`.
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| MVP live on Preprod (verifiable address) | ✅ | `3fac6305…2120b446` — deploy block 2,419,510, drop open at block 2,419,536 |
+| MVP live on Preprod (verifiable address) | ✅ | `edae3255…b468dc7` — deploy block 2,519,627, two drops open |
 | `docs/USAGE.md` | ✅ | [`docs/USAGE.md`](../../USAGE.md) — first-time bidder guide, linked from the README |
 | README + setup docs | ✅ | README → *Prerequisites*, *Setup & Run Locally*, *Run Tests* |
 | CI/CD passing | ✅ | [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml), two jobs |
@@ -35,10 +35,10 @@ network, Preprod**.
 
 | | |
 |---|---|
-| **Contract** | `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` |
-| **Deploy** | block 2,419,510 · tx `79061bfb…3565bc78` · 2026-09-05 17:34 UTC |
-| **Drop opened** | block 2,419,536 · tx `1a34b5cd…fbaabba3` · `createDrop` |
-| **Drop** | Genesis Envelope · reserve sealed (commitment `8670a36c…648cf8e4`) · stock 1 · closes 2026-09-19 17:35 UTC |
+| **Contract** | `edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7` (multi-drop) |
+| **Deploy** | block 2,519,627 · tx `00ff84df…08cdc1e7` · 2026-09-12 |
+| **Drops opened** | `drop-001` block 2,519,652 · `drop-002` block 2,519,671 |
+| **Drops** | Genesis Envelope (stock 1) · Second Envelope (stock 2) · reserves sealed · both close 2026-11-01 |
 
 Verify the drop is open, no wallet needed:
 
