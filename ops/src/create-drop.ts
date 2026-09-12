@@ -4,10 +4,14 @@
 // commitment (the house cannot move the reserve afterwards), and stores the
 // (reserve, salt) preimage in the git-ignored vault for the later reveal.
 //
-//   MIDNIGHT_NETWORK=preview npm run create-drop
+//   MIDNIGHT_NETWORK=preprod DROP_ID=drop-002 npm run create-drop
+//
+// One contract now holds many drops, each under its own id, so opening a drop
+// no longer needs a fresh deployment.
 //
 // Env knobs (all optional):
 //   CONTRACT_ADDRESS   deployed contract (defaults to the L1 Preview deploy)
+//   DROP_ID            drop slug, <=32 bytes (default "drop-001")
 //   DROP_RESERVE       hidden reserve in whole tDUST (default 25)
 //   DROP_STOCK         units available (default 1)
 //   DROP_CLOSE_MINUTES minutes until reveal (default 60)
@@ -19,6 +23,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { Contract, pureCircuits } from '../managed/lowball/contract/index.js'
+import { dropIdBytes } from './drop-id.js'
 import { emptyLowballPrivateState, witnesses } from './lowball-witnesses.js'
 import { callOnNetwork } from './wallet.js'
 
@@ -31,6 +36,8 @@ const seedPath = resolve(here, '..', 'vault', 'preprod-seed')
 const CONTRACT =
   process.env.CONTRACT_ADDRESS ??
   'e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11'
+const DROP_ID = process.env.DROP_ID ?? 'drop-001'
+const dropId = dropIdBytes(DROP_ID)
 const reserveWhole = BigInt(process.env.DROP_RESERVE ?? '25')
 const reserve = reserveWhole * DUST_MINOR
 const stock = BigInt(process.env.DROP_STOCK ?? '1')
@@ -47,12 +54,17 @@ async function main() {
   // Persist the preimage FIRST — losing it means losing the ability to reveal.
   const vaultDir = resolve(here, '..', 'vault')
   mkdirSync(vaultDir, { recursive: true })
-  const preimagePath = resolve(vaultDir, `drop-${CONTRACT.slice(0, 12)}.json`)
+  // Keyed by contract *and* drop, since one contract now holds many drops.
+  const preimagePath = resolve(
+    vaultDir,
+    `drop-${CONTRACT.slice(0, 12)}-${DROP_ID}.json`,
+  )
   writeFileSync(
     preimagePath,
     JSON.stringify(
       {
         contractAddress: CONTRACT,
+        dropId: DROP_ID,
         reserveMinor: reserve.toString(),
         reserveWhole: reserveWhole.toString(),
         saltHex: toHex(salt),
@@ -68,6 +80,7 @@ async function main() {
     { mode: 0o600 },
   )
   console.log(`Reserve preimage stored: ${preimagePath}`)
+  console.log(`  drop id:    ${DROP_ID}`)
   console.log(`  reserve:    ${reserveWhole} tDUST (hidden)`)
   console.log(`  commitment: ${toHex(commitment)}`)
   console.log(`  stock:      ${stock}`)
@@ -83,10 +96,10 @@ async function main() {
     initialPrivateState: emptyLowballPrivateState(),
     zkConfigPath: managedPath,
     invoke: (contract) =>
-      contract.callTx.createDrop(commitment, stock, closeTime, meta),
+      contract.callTx.createDrop(dropId, commitment, stock, closeTime, meta),
   })
 
-  console.log(`\nDrop opened.`)
+  console.log(`\nDrop "${DROP_ID}" opened.`)
   console.log(JSON.stringify({ ...result, blockHeight: result.blockHeight.toString() }, null, 2))
 }
 

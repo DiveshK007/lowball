@@ -1,6 +1,6 @@
 // House-side copy of the LOWBALL witnesses. Mirrors contract/src/witnesses.ts
 // (kept local so ops/ typechecks without reaching across the package root).
-// The contract is frozen at L1; if its witness set changes, update both.
+// If the contract's witness set changes, update both.
 
 import type { WitnessContext } from '@midnight-ntwrk/compact-runtime'
 
