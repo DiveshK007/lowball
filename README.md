@@ -129,7 +129,7 @@ Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC /
 | Layer | What |
 |---|---|
 | Contract | Compact (`compact` 0.5.x / compiler 0.31.x), compiled to `contract/src/managed/` |
-| Chain | Midnight — Preview today, Preprod pending ([runbook](docs/preprod-deploy-cloud.md)) |
+| Chain | Midnight — **Preprod** ([runbook](docs/preprod-deploy-cloud.md)) |
 | dApp | React 19 + TypeScript + Vite, Midnight.js SDK, DApp Connector API (Lace) |
 | Proving | Local proof server in Docker (`midnightntwrk/proof-server`, port 6300) |
 | House ops | Node 22 + TypeScript CLI (`ops/`) — `create-drop`, `close-and-reveal` |
@@ -140,7 +140,7 @@ Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC /
 
 - **Node.js v22** (pinned by `.nvmrc`)
 - **Docker Desktop** — runs the local proof server
-- **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)** set to **Preview**, funded from the [Preview faucet](https://faucet.preview.midnight.network/)
+- **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)** set to **Preprod**, funded from the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/)
 - tDUST for fees: register your tNIGHT for **DUST generation** in Lace and let it accrue (NIGHT does not pay fees directly)
 - **Compact compiler** — only needed to recompile the contract (see Setup)
 
