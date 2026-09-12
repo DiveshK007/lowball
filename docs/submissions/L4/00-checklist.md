@@ -16,7 +16,7 @@ decisions log §10 in `docs/superpowers/specs/2026-07-19-lowball-design.md`.
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| MVP live on Preprod (verifiable address) | ✅ | `72dfe029…f169a4b1` — deploy block 2,520,320, two drops open |
+| MVP live on Preprod (verifiable address) | ✅ | `f81e44ea…d9ec66dc` — deploy block 2,520,844, two drops open |
 | `docs/USAGE.md` | ✅ | [`docs/USAGE.md`](../../USAGE.md) — first-time bidder guide, linked from the README |
 | README + setup docs | ✅ | README → *Prerequisites*, *Setup & Run Locally*, *Run Tests* |
 | CI/CD passing | ✅ | [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml), two jobs |
@@ -35,10 +35,10 @@ network, Preprod**.
 
 | | |
 |---|---|
-| **Contract** | `72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1` (multi-drop + bid accumulator) |
-| **Deploy** | block 2,520,320 · 2026-09-12 |
-| **Drops opened** | `drop-001` · `drop-002` · `drop-proof` (accumulator evidence) |
-| **Drops** | Genesis Envelope (stock 1) · Second Envelope (stock 2) · reserves sealed · both close 2026-11-01. `drop-proof` closed: 3 bidders, 3 winners |
+| **Contract** | `f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc` (multi-drop + accumulator + stock) |
+| **Deploy** | block 2,520,844 · 2026-09-12 |
+| **Drops opened** | `drop-001` (stock 50) · `drop-002` (stock 25) · `drop-soldout` (stock evidence) |
+| **Drops** | Genesis Envelope (stock 50) · Second Envelope (stock 25) · reserves sealed · both close 2026-12-31. `drop-soldout` closed: stock 2, 3 bids, 2 winners |
 
 Verify the drop is open, no wallet needed:
 

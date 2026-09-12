@@ -1,6 +1,6 @@
 # LOWBALL — Handoff
 
-**Updated 2026-09-12** (bid accumulator).
+**Updated 2026-09-12** (bid accumulator + claim-order stock).
 
 For an assistant or contributor who has only this repository. Everything below was
 verified against the working tree, GitHub, the deployed Vercel bundle, and the Midnight
@@ -10,18 +10,18 @@ indexers. Where a claim could not be verified, it says so.
 
 ## 1. Current state
 
-**The app runs on Preprod, on a multi-drop contract with two drops open, and every
-bidder on a drop can prove their own win.** Preview → Preprod on 2026-09-05; multi-drop
-on 2026-09-12; bid accumulation the same day.
+**The app runs on Preprod. One contract holds many drops, every bidder can prove their
+own win, and stock is enforced by claim order.** Preview → Preprod on 2026-09-05;
+multi-drop, bid accumulation and stock enforcement on 2026-09-12.
 
 | | |
 |---|---|
 | **App** | https://lowball-orpin.vercel.app |
-| **Contract** | `72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1` (multi-drop + bid accumulator) |
-| **Deploy** | block 2,520,320 |
-| **Drops open** | `drop-001` Genesis Envelope, stock 1 · `drop-002` Second Envelope, stock 2 |
-| **Both close** | **2026-11-01** — deliberately past the end-of-September judging window |
-| **Proof drop** | `drop-proof` — closed; 3 distinct bidders, 3 sealed bids, **3 winners** |
+| **Contract** | `f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc` (multi-drop + accumulator + stock) |
+| **Deploy** | block 2,520,844 |
+| **Drops open** | `drop-001` Genesis Envelope **stock 50** · `drop-002` Second Envelope **stock 25** — low reserves so most testers win |
+| **Both close** | **2026-12-31** — well past the L5/L6 judging window |
+| **Proof drop** | `drop-soldout` — closed; stock 2, 3 sealed bids, **2 winners**, 3rd told it sold out |
 
 Reserves are sealed; only their commitments are public. **Never publish a live drop's
 reserve.** It was leaked into the README once and went unnoticed for a week (fixed
@@ -32,11 +32,12 @@ Verify without a wallet — `entryPoint: "createDrop"` means open and unbid:
 ```bash
 curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
   -H 'content-type: application/json' \
-  -d '{"query":"{contractAction(address:\"72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1\"){__typename ... on ContractCall{entryPoint}}}"}'
+  -d '{"query":"{contractAction(address:\"f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc\"){__typename ... on ContractCall{entryPoint}}}"}'
 ```
 
 Superseded addresses, kept in the README because they are the evidence earlier levels
-were judged on: `edae3255…` (Preprod, multi-drop but single-bid-slot),
+were judged on: `72dfe029…` (Preprod, accumulator but stock unenforced),
+`edae3255…` (Preprod, multi-drop but single-bid-slot),
 `3fac6305…` (Preprod, single-drop, one drop closing 2026-09-19),
 `1e7b6dee…` (Preprod, bare deploy, never had a drop), `ae971dc9…`
 (Preview, full loop, win claimed), `e5f6d470…` (Preview, L1 record, reveal only).
@@ -104,11 +105,10 @@ Read these before changing networks or touching the wallet scripts.
 
 ## 5. Open questions
 
-1. **Stock is not enforced on a win.** Every bidder clearing the reserve wins, so a
-   stock-1 drop can record many winners. Architecture §3.3 specifies `stock -= 1` on a
-   win, which needs a rule for which clearing bidders win when there are more of them
-   than stock (bid-order priority, per decisions log §10, 2026-07-19). This is the next
-   open question and a product decision, not a mechanical fix.
+1. **Claim-order stock has not been exercised under genuinely concurrent claims.**
+   Reading `dropWinners.size()` should tie a transaction to the count it was proved
+   against, so two claims for the same last unit cannot both apply — but that has only
+   been tested sequentially. Worth confirming at L5 scale.
 2. L2/L3 drew a **"no commits in August"** response that is wrong about this repo — 47
    commits carry August 2026 dates and GitHub attributes all of them. There are zero
    commits Aug 25–31, which is the likeliest mechanism. Unresolved with the program.
