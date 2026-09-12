@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 
-import { explorerContractUrl } from '../config'
-import { findDrop } from '../config/drops'
+import { config, explorerContractUrl } from '../config'
+import { dropMetaFor } from '../config/drops'
 import { formatDust, groupHex, shortHex } from '../lib/format'
 import { useDropState, useWallet } from '../lib/midnight'
 import { Banner } from '../ui/Banner'
@@ -18,15 +18,20 @@ import { WalletNotice } from '../features/wallet/WalletNotice'
 
 export const DropPage = () => {
   const { dropId = '' } = useParams()
-  const drop = findDrop(dropId)
   const wallet = useWallet()
-  const { state, loading, error, refresh } = useDropState(drop?.contractAddress ?? null)
-  const flow = useBidFlow(dropId, drop?.contractAddress ?? null, state)
+  const { state, loading, error, refresh } = useDropState(
+    config.contractAddress,
+    dropId,
+  )
+  const flow = useBidFlow(dropId, config.contractAddress, state)
+  // The chain decides which drops exist; this build only supplies the art.
+  const drop = dropMetaFor(dropId, state?.metaRef)
 
-  if (!drop) {
+  if (error?.code === 'drop-not-found') {
     return (
       <div className="center-note">
         <h2>No such drop.</h2>
+        <p>Nothing is open at this address under “{dropId}”.</p>
         <Link className="btn btn--ghost" to="/">
           Back to the gallery
         </Link>

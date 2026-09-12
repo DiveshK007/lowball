@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { explorerContractUrl, networkLabel, config } from '../config'
-import { findDrop } from '../config/drops'
+import { dropMetaFor } from '../config/drops'
 import { formatDust, groupHex, shortHex } from '../lib/format'
 import { reserveCommitmentHex, useDropState } from '../lib/midnight'
 
@@ -29,8 +29,9 @@ const parseSalt = (input: string): Uint8Array | null => {
 
 export const ReceiptsPage = () => {
   const { dropId = '' } = useParams()
-  const drop = findDrop(dropId)
-  const { state, loading } = useDropState(drop?.contractAddress ?? null)
+  const { state, loading } = useDropState(config.contractAddress, dropId)
+  // The chain decides which drops exist; this build only supplies the art.
+  const drop = dropMetaFor(dropId, state?.metaRef)
   const [saltText, setSaltText] = useState('')
 
   const revealed = state?.phase === 'revealed'
@@ -50,7 +51,7 @@ export const ReceiptsPage = () => {
     }
   }, [reserve, saltText, state?.commitmentHex])
 
-  if (!drop) {
+  if (!loading && !state) {
     return (
       <div className="center-note">
         <h2>No such drop.</h2>

@@ -26,6 +26,9 @@ export type DropState = {
   readonly winnerFound: boolean
 }
 
+/** A drop's state plus the id it lives under — what the gallery lists. */
+export type DropListing = DropState & { readonly dropId: string }
+
 export type WalletSummary = {
   readonly name: string
   readonly icon: string

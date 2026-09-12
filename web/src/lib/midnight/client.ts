@@ -8,10 +8,17 @@ import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-j
 import { toHex } from '@midnight-ntwrk/midnight-js-utils'
 
 import { config } from '../../config'
+import { dropIdBytes, dropIdSlug } from './drop-id'
 import { LowballError, asCircuitError } from './errors'
 import * as Lowball from './generated/lowball/index.js'
 import { PRIVATE_STATE_ID, buildProviders } from './providers'
-import type { DropPhase, DropState, TxReceipt, Verdict } from './types'
+import type {
+  DropPhase,
+  DropListing,
+  DropState,
+  TxReceipt,
+  Verdict,
+} from './types'
 import { emptyLowballPrivateState, witnesses } from './witnesses'
 import type { LowballPrivateState } from './witnesses'
 
@@ -40,18 +47,41 @@ const PHASES: Record<number, DropPhase> = {
 const toDate = (seconds: bigint): Date | null =>
   seconds > 0n ? new Date(Number(seconds) * 1000) : null
 
-const decode = (ledger: Lowball.Ledger): DropState => ({
-  phase: PHASES[ledger.status] ?? 'unset',
-  commitmentHex: toHex(ledger.commitment),
-  stock: Number(ledger.stock),
-  closeTime: toDate(ledger.closeTime),
-  metaRef: ledger.metaRef,
-  bidCount: Number(ledger.bidCount),
-  latestBidCommitmentHex: toHex(ledger.latestBidCommitment),
-  revealedReserve:
-    ledger.status === Lowball.DropStatus.REVEALED ? ledger.revealedReserve : null,
-  winnerFound: ledger.winnerFound,
-})
+/**
+ * Decode one drop out of the ledger. Every map read is guarded: on Midnight a
+ * `lookup` of a missing key is a runtime error rather than an empty value, and
+ * the later-stage maps (revealed reserve, latest bid, winner) are genuinely
+ * absent until the drop reaches that stage.
+ */
+const decodeDrop = (ledger: Lowball.Ledger, key: Uint8Array): DropState => {
+  if (!ledger.dropStatus.member(key)) {
+    throw new LowballError('drop-not-found', 'No such drop on this contract.', {
+      hint: 'The link may be for a drop on an older deployment.',
+    })
+  }
+  const status = ledger.dropStatus.lookup(key)
+  return {
+    phase: PHASES[status] ?? 'unset',
+    commitmentHex: toHex(ledger.dropCommitment.lookup(key)),
+    stock: Number(ledger.dropStock.lookup(key)),
+    closeTime: toDate(ledger.dropCloseTime.lookup(key)),
+    metaRef: ledger.dropMetaRef.lookup(key),
+    // A Counter nested in a Map comes back as its ADT, not a bigint.
+    bidCount: ledger.dropBidCount.member(key)
+      ? Number(ledger.dropBidCount.lookup(key).read())
+      : 0,
+    latestBidCommitmentHex: ledger.dropLatestBid.member(key)
+      ? toHex(ledger.dropLatestBid.lookup(key))
+      : '',
+    revealedReserve:
+      status === Lowball.DropStatus.REVEALED && ledger.dropRevealed.member(key)
+        ? ledger.dropRevealed.lookup(key)
+        : null,
+    winnerFound: ledger.dropWinnerFound.member(key)
+      ? ledger.dropWinnerFound.lookup(key)
+      : false,
+  }
+}
 
 const requireAddress = (address: string | null): string => {
   if (!address) {
@@ -64,13 +94,7 @@ const requireAddress = (address: string | null): string => {
   return address
 }
 
-/**
- * Read a drop's public ledger state. No wallet required — this is the path the
- * gallery and the receipts page use.
- */
-export const readDropState = async (
-  address: string | null,
-): Promise<DropState> => {
+const readLedger = async (address: string | null): Promise<Lowball.Ledger> => {
   const contractAddress = requireAddress(address)
   // Imported lazily so a wallet-free page never pulls the provider tree until
   // it actually reads.
@@ -83,7 +107,38 @@ export const readDropState = async (
       { hint: 'Check VITE_CONTRACT_ADDRESS matches the deploy output.' },
     )
   }
-  return decode(Lowball.ledger(state.data))
+  return Lowball.ledger(state.data)
+}
+
+/**
+ * Read one drop's public ledger state. No wallet required — this is the path
+ * the drop page and the receipts page use.
+ */
+export const readDropState = async (
+  address: string | null,
+  dropId: string,
+): Promise<DropState> =>
+  decodeDrop(await readLedger(address), dropIdBytes(dropId))
+
+/**
+ * Every drop on the contract. One contract read, not one per drop: the ledger
+ * maps are iterable, so the gallery costs the same whether the deployment holds
+ * one drop or fifty.
+ */
+export const readDropList = async (
+  address: string | null,
+): Promise<readonly DropListing[]> => {
+  const ledger = await readLedger(address)
+  const listings: DropListing[] = []
+  for (const [key] of ledger.dropStatus) {
+    listings.push({ dropId: dropIdSlug(key), ...decodeDrop(ledger, key) })
+  }
+  // Map iteration order is deterministic but unspecified, so impose one the UI
+  // can rely on: open drops first, then by slug.
+  return listings.sort((a, b) => {
+    if (a.phase !== b.phase) return a.phase === 'open' ? -1 : 1
+    return a.dropId.localeCompare(b.dropId)
+  })
 }
 
 import { bidCommitmentHex } from './hashes'
@@ -109,6 +164,8 @@ const connect = async (
 export type BidArgs = {
   readonly api: ConnectedAPI
   readonly address: string | null
+  /** Drop slug; encoded to its 32-byte ledger key before the call. */
+  readonly dropId: string
   readonly amount: bigint
   readonly secret: Uint8Array
 }
@@ -127,7 +184,7 @@ export const placeSealedBid = async (
       bidAmount: args.amount,
       bidderSecret: args.secret,
     })
-    const result = await contract.callTx.placeBid()
+    const result = await contract.callTx.placeBid(dropIdBytes(args.dropId))
     return {
       txId: String(result.public.txId),
       blockHeight: result.public.blockHeight ?? null,
@@ -151,7 +208,7 @@ export const checkVerdict = async (args: BidArgs): Promise<Verdict> => {
       bidAmount: args.amount,
       bidderSecret: args.secret,
     })
-    const result = await contract.callTx.checkWin()
+    const result = await contract.callTx.checkWin(dropIdBytes(args.dropId))
     return {
       kind: 'win',
       receipt: {

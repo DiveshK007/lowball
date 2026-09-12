@@ -11,6 +11,7 @@ export type LowballErrorCode =
   | 'network-mismatch'
   | 'contract-not-configured'
   | 'contract-not-found'
+  | 'drop-not-found'
   | 'insufficient-dust'
   | 'proof-server-unreachable'
   | 'drop-not-open'
@@ -91,6 +92,18 @@ export const asCircuitError = (e: unknown): LowballError => {
       'The reserve has not been revealed yet.',
       { hint: 'Verdicts land the moment the house reveals.', cause: e },
     )
+  }
+  if (/no such drop/i.test(raw)) {
+    return new LowballError('drop-not-found', 'No such drop on this contract.', {
+      hint: 'The link may be for a drop on an older deployment.',
+      cause: e,
+    })
+  }
+  if (/no bid recorded/i.test(raw)) {
+    return new LowballError('bid-below-reserve', 'No sealed bid to open here.', {
+      hint: 'This device has no bid recorded against this drop.',
+      cause: e,
+    })
   }
   if (/drop not open/i.test(raw)) {
     return new LowballError('drop-not-open', 'This drop is closed to bids.', {

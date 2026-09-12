@@ -10,12 +10,14 @@ export { bidCommitmentHex, reserveCommitmentHex } from './hashes'
 export {
   WalletProvider,
   useWallet,
+  useDropList,
   useDropState,
   usePlaceBid,
   useVerdict,
 } from './react'
 export type {
   BidPhase,
+  DropListResult,
   DropStateResult,
   PlaceBidResult,
   VerdictPhase,
@@ -27,6 +29,7 @@ export type {
 export type {
   DropPhase,
   DropState,
+  DropListing,
   SealedBid,
   TxReceipt,
   Verdict,

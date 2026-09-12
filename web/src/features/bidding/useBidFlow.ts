@@ -43,8 +43,8 @@ export const useBidFlow = (
   const [amountText, setAmountText] = useState('')
   const [inputError, setInputError] = useState<string | null>(null)
 
-  const place = usePlaceBid(address)
-  const verdict = useVerdict(address)
+  const place = usePlaceBid(address, dropId)
+  const verdict = useVerdict(address, dropId)
 
   // A journalled bid whose commitment is already the drop's latest one did
   // reach the chain — the confirmation just never got back to us.

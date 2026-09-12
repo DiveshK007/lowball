@@ -11,24 +11,28 @@ export type Witnesses<PS> = {
 
 export type ImpureCircuits<PS> = {
   createDrop(context: __compactRuntime.CircuitContext<PS>,
+             dropId__0: Uint8Array,
              commitment__0: Uint8Array,
              stock__0: bigint,
              closeTime__0: bigint,
              metaRef__0: string): __compactRuntime.CircuitResults<PS, []>;
-  placeBid(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  revealReserve(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  checkWin(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  placeBid(context: __compactRuntime.CircuitContext<PS>, dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  revealReserve(context: __compactRuntime.CircuitContext<PS>,
+                dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  checkWin(context: __compactRuntime.CircuitContext<PS>, dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type ProvableCircuits<PS> = {
   createDrop(context: __compactRuntime.CircuitContext<PS>,
+             dropId__0: Uint8Array,
              commitment__0: Uint8Array,
              stock__0: bigint,
              closeTime__0: bigint,
              metaRef__0: string): __compactRuntime.CircuitResults<PS, []>;
-  placeBid(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  revealReserve(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  checkWin(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  placeBid(context: __compactRuntime.CircuitContext<PS>, dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  revealReserve(context: __compactRuntime.CircuitContext<PS>,
+                dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  checkWin(context: __compactRuntime.CircuitContext<PS>, dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type PureCircuits = {
@@ -44,25 +48,81 @@ export type Circuits<PS> = {
               reserve_0: bigint,
               salt_0: Uint8Array): __compactRuntime.CircuitResults<PS, Uint8Array>;
   createDrop(context: __compactRuntime.CircuitContext<PS>,
+             dropId__0: Uint8Array,
              commitment__0: Uint8Array,
              stock__0: bigint,
              closeTime__0: bigint,
              metaRef__0: string): __compactRuntime.CircuitResults<PS, []>;
-  placeBid(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  revealReserve(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  checkWin(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  placeBid(context: __compactRuntime.CircuitContext<PS>, dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  revealReserve(context: __compactRuntime.CircuitContext<PS>,
+                dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
+  checkWin(context: __compactRuntime.CircuitContext<PS>, dropId__0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type Ledger = {
-  readonly status: DropStatus;
-  readonly commitment: Uint8Array;
-  readonly stock: bigint;
-  readonly closeTime: bigint;
-  readonly metaRef: string;
-  readonly bidCount: bigint;
-  readonly latestBidCommitment: Uint8Array;
-  readonly revealedReserve: bigint;
-  readonly winnerFound: boolean;
+  dropStatus: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): DropStatus;
+    [Symbol.iterator](): Iterator<[Uint8Array, DropStatus]>
+  };
+  dropCommitment: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): Uint8Array;
+    [Symbol.iterator](): Iterator<[Uint8Array, Uint8Array]>
+  };
+  dropStock: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): bigint;
+    [Symbol.iterator](): Iterator<[Uint8Array, bigint]>
+  };
+  dropCloseTime: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): bigint;
+    [Symbol.iterator](): Iterator<[Uint8Array, bigint]>
+  };
+  dropMetaRef: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): string;
+    [Symbol.iterator](): Iterator<[Uint8Array, string]>
+  };
+  dropBidCount: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): { read(): bigint }
+  };
+  dropLatestBid: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): Uint8Array;
+    [Symbol.iterator](): Iterator<[Uint8Array, Uint8Array]>
+  };
+  dropRevealed: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): bigint;
+    [Symbol.iterator](): Iterator<[Uint8Array, bigint]>
+  };
+  dropWinnerFound: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: Uint8Array): boolean;
+    lookup(key_0: Uint8Array): boolean;
+    [Symbol.iterator](): Iterator<[Uint8Array, boolean]>
+  };
+  readonly dropCount: bigint;
 }
 
 export type ContractReferenceLocations = any;

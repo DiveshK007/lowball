@@ -15,8 +15,19 @@ import type { ReactNode } from 'react'
 
 import { connectWallet, watchForWallets } from './connector'
 import { LowballError, asWalletError, isLowballError } from './errors'
-import { checkVerdict, placeSealedBid, readDropState } from './client'
-import type { DropState, TxReceipt, Verdict, WalletSummary } from './types'
+import {
+  checkVerdict,
+  placeSealedBid,
+  readDropList,
+  readDropState,
+} from './client'
+import type {
+  DropState,
+  DropListing,
+  TxReceipt,
+  Verdict,
+  WalletSummary,
+} from './types'
 
 const toLowballError = (e: unknown): LowballError =>
   isLowballError(e) ? e : asWalletError(e)
@@ -126,8 +137,11 @@ export type DropStateResult = {
   readonly refresh: () => void
 }
 
-/** Wallet-free read of a drop's public state, polled while mounted. */
-export const useDropState = (address: string | null): DropStateResult => {
+/** Wallet-free read of one drop's public state, polled while mounted. */
+export const useDropState = (
+  address: string | null,
+  dropId: string,
+): DropStateResult => {
   const [state, setState] = useState<DropState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<LowballError | null>(null)
@@ -139,7 +153,7 @@ export const useDropState = (address: string | null): DropStateResult => {
     let cancelled = false
 
     const read = () => {
-      readDropState(address).then(
+      readDropState(address, dropId).then(
         (next) => {
           if (!cancelled) {
             setState(next)
@@ -163,7 +177,7 @@ export const useDropState = (address: string | null): DropStateResult => {
       live.current = false
       window.clearInterval(timer)
     }
-  }, [address, nonce])
+  }, [address, dropId, nonce])
 
   const refresh = useCallback(() => {
     setLoading(true)
@@ -171,6 +185,57 @@ export const useDropState = (address: string | null): DropStateResult => {
   }, [])
 
   return { state, loading, error, refresh }
+}
+
+export type DropListResult = {
+  readonly drops: readonly DropListing[]
+  readonly loading: boolean
+  readonly error: LowballError | null
+  readonly refresh: () => void
+}
+
+/** Wallet-free read of every drop on the contract, polled while mounted. */
+export const useDropList = (address: string | null): DropListResult => {
+  const [drops, setDrops] = useState<readonly DropListing[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<LowballError | null>(null)
+  const [nonce, setNonce] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const read = () => {
+      readDropList(address).then(
+        (next) => {
+          if (!cancelled) {
+            setDrops(next)
+            setError(null)
+            setLoading(false)
+          }
+        },
+        (e: unknown) => {
+          if (!cancelled) {
+            setError(toLowballError(e))
+            setLoading(false)
+          }
+        },
+      )
+    }
+
+    read()
+    const timer = window.setInterval(read, POLL_INTERVAL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [address, nonce])
+
+  const refresh = useCallback(() => {
+    setLoading(true)
+    setNonce((n) => n + 1)
+  }, [])
+
+  return { drops, loading, error, refresh }
 }
 
 /* --------------------------------------------------------- circuit calls -- */
@@ -189,7 +254,10 @@ export type PlaceBidResult = {
   readonly reset: () => void
 }
 
-export const usePlaceBid = (address: string | null): PlaceBidResult => {
+export const usePlaceBid = (
+  address: string | null,
+  dropId: string,
+): PlaceBidResult => {
   const { api } = useWallet()
   const [phase, setPhase] = useState<BidPhase>('idle')
   const [receipt, setReceipt] = useState<
@@ -235,7 +303,13 @@ export const usePlaceBid = (address: string | null): PlaceBidResult => {
       setPhase('proving')
       setError(null)
       try {
-        const result = await placeSealedBid({ api, address, amount, secret })
+        const result = await placeSealedBid({
+          api,
+          address,
+          dropId,
+          amount,
+          secret,
+        })
         setReceipt(result)
         setPhase('sealed')
         return result
@@ -245,7 +319,7 @@ export const usePlaceBid = (address: string | null): PlaceBidResult => {
         return null
       }
     },
-    [api, address],
+    [api, address, dropId],
   )
 
   const reset = useCallback(() => {
@@ -271,7 +345,10 @@ export type VerdictResult = {
  * Reveal-day verdict. A loss never leaves the device: the in-circuit assert
  * fails locally, so no transaction is built and nothing is disclosed.
  */
-export const useVerdict = (address: string | null): VerdictResult => {
+export const useVerdict = (
+  address: string | null,
+  dropId: string,
+): VerdictResult => {
   const { api } = useWallet()
   const [phase, setPhase] = useState<VerdictPhase>('idle')
   const [verdict, setVerdict] = useState<Verdict | null>(null)
@@ -289,7 +366,13 @@ export const useVerdict = (address: string | null): VerdictResult => {
       setPhase('opening')
       setError(null)
       try {
-        const result = await checkVerdict({ api, address, amount, secret })
+        const result = await checkVerdict({
+          api,
+          address,
+          dropId,
+          amount,
+          secret,
+        })
         setVerdict(result)
         setPhase('settled')
         return result
@@ -299,7 +382,7 @@ export const useVerdict = (address: string | null): VerdictResult => {
         return null
       }
     },
-    [api, address],
+    [api, address, dropId],
   )
 
   const reset = useCallback(() => {

@@ -5,23 +5,31 @@
 
 import { Link } from 'react-router-dom'
 
-import { SEEDED_DROPS } from '../config/drops'
+import { dropMetaFor } from '../config/drops'
 import { config, isContractConfigured, networkLabel } from '../config'
-import { useDropState } from '../lib/midnight'
-import type { DropMeta } from '../config/drops'
+import { useDropList } from '../lib/midnight'
+import type { DropListing } from '../lib/midnight'
 import { Banner } from '../ui/Banner'
 import { useReveal } from '../ui/useReveal'
 import { DropCard } from '../features/drops/DropCard'
 import { WalletNotice } from '../features/wallet/WalletNotice'
 
-const LiveDropCard = ({ drop }: { drop: DropMeta }) => {
-  const { state, loading } = useDropState(drop.contractAddress)
-  return <DropCard drop={drop} state={state} loading={loading} />
-}
+const LiveDropCard = ({
+  listing,
+  loading,
+}: {
+  listing: DropListing
+  loading: boolean
+}) => (
+  <DropCard
+    drop={dropMetaFor(listing.dropId, listing.metaRef)}
+    state={listing}
+    loading={loading}
+  />
+)
 
 /** Bid count is public; amounts never are. That contrast is the product. */
-const LedgerTile = ({ drop }: { drop: DropMeta }) => {
-  const { state } = useDropState(drop.contractAddress)
+const LedgerTile = ({ state }: { state: DropListing | null }) => {
   return (
     <div className="tile tile--signal">
       <span className="eyebrow">What the ledger shows</span>
@@ -36,7 +44,11 @@ const LedgerTile = ({ drop }: { drop: DropMeta }) => {
 
 export const GalleryPage = () => {
   const root = useReveal<HTMLDivElement>()
-  const featured = SEEDED_DROPS[0]
+  // The contract is the catalogue: every drop it holds shows up here, so the
+  // house can open one without shipping a web build.
+  const { drops, loading } = useDropList(config.contractAddress)
+  const featured = drops[0] ?? null
+  const rest = drops.slice(1)
 
   return (
     <div className="stack" ref={root}>
@@ -50,7 +62,7 @@ export const GalleryPage = () => {
           the house. Clear the reserve and you win at your price.
         </p>
         {featured ? (
-          <Link className="hero__cta reveal" to={`/drop/${featured.id}`}>
+          <Link className="hero__cta reveal" to={`/drop/${featured.dropId}`}>
             Open the drop
             <span aria-hidden="true">→</span>
           </Link>
@@ -70,7 +82,7 @@ export const GalleryPage = () => {
       <div className="bento">
         {featured ? (
           <div className="bento__tile bento__tile--feature reveal">
-            <LiveDropCard drop={featured} />
+            <LiveDropCard listing={featured} loading={loading} />
           </div>
         ) : null}
 
@@ -86,12 +98,12 @@ export const GalleryPage = () => {
         </div>
 
         <div className="bento__tile reveal">
-          {featured ? <LedgerTile drop={featured} /> : null}
+          <LedgerTile state={featured} />
         </div>
 
-        {SEEDED_DROPS.slice(1).map((drop) => (
-          <div className="bento__tile reveal" key={drop.id}>
-            <LiveDropCard drop={drop} />
+        {rest.map((listing) => (
+          <div className="bento__tile reveal" key={listing.dropId}>
+            <LiveDropCard listing={listing} loading={loading} />
           </div>
         ))}
 
@@ -104,7 +116,7 @@ export const GalleryPage = () => {
               your own browser. No wallet needed.
             </p>
             {featured ? (
-              <Link className="mono" to={`/receipts/${featured.id}`}>
+              <Link className="mono" to={`/receipts/${featured.dropId}`}>
                 open receipts →
               </Link>
             ) : null}
