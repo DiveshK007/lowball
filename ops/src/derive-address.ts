@@ -6,7 +6,14 @@
 //
 //   npm run derive-address                          # address only, no network
 //   npm run derive-address -- --balance             # + fetch on-chain balance
+//   npm run derive-address -- --full                # + wait for a FULL sync
 //   MIDNIGHT_NETWORK=preview npm run derive-address -- --balance
+//
+// --balance waits only on the unshielded ledger, which completes in seconds.
+// --full waits on all three, which is what deploying and calling actually need:
+// it is the cheapest way to find out whether the dust cache still replays before
+// committing to a deploy that would otherwise wedge half way (decisions log §10,
+// 2026-09-05).
 //
 // Fund the printed address at https://midnight.network/test-faucet.
 
@@ -17,6 +24,7 @@ import {
   resolveNetwork,
   startWallet,
   unshieldedBalanceOf,
+  waitForSync,
   waitForUnshieldedSync,
 } from "./wallet.js";
 
@@ -25,7 +33,8 @@ const FAUCET = "https://midnight.network/test-faucet";
 
 async function main() {
   const args = process.argv.slice(2);
-  const wantBalance = args.includes("--balance");
+  const wantFull = args.includes("--full");
+  const wantBalance = args.includes("--balance") || wantFull;
   const { name: network, config } = resolveNetwork();
   const seed = readSeed(SEED_PATH);
 
@@ -45,7 +54,10 @@ async function main() {
   console.log(`\nConnecting to ${network} (this can take ~10s)...`);
   const ctx = await startWallet(config, seed);
   try {
-    const state = await waitForUnshieldedSync(ctx.wallet);
+    const state = wantFull
+      ? await waitForSync(ctx.wallet)
+      : await waitForUnshieldedSync(ctx.wallet);
+    if (wantFull) console.log(`Full sync complete — all three ledgers.`);
     const balance = unshieldedBalanceOf(state);
     console.log(`Unshielded balance: ${balance.toLocaleString()} tNight`);
     if (balance === 0n) {
