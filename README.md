@@ -34,6 +34,9 @@ The only things ever made public are the things that keep the house honest: the 
 
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preprod**, and fund it at the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
 
+New to Midnight wallets? The **[usage guide](docs/USAGE.md)** walks the whole thing
+end to end, including the tDUST step that catches everyone.
+
 The 60-second walkthrough:
 
 1. Open the gallery, click **Genesis Envelope**.
@@ -255,6 +258,8 @@ Even the house cannot see bids pre-verdict, so the house cannot selectively acce
 
 ## Docs
 
+- **[Usage guide](docs/USAGE.md)** — how to bid, written for a first-time wallet user
+  (including why your tDUST reads zero)
 - [Design spec](docs/superpowers/specs/2026-07-19-lowball-design.md)
 - [Architecture](docs/architecture.md)
 - [Prompt pack (per-level)](docs/prompts.md)
