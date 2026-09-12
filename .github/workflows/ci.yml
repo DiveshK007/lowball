@@ -24,6 +24,17 @@ jobs:
             https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Cache Compact toolchain
+        # `compact update` resolves the version through the GitHub releases API
+        # unauthenticated, so a busy push day exhausts the shared-runner rate
+        # limit and CI fails with "API rate limit exceeded" on a green tree.
+        # Caching the toolchain keyed on the pinned version keeps that call off
+        # the critical path.
+        uses: actions/cache@v4
+        with:
+          path: ~/.compact
+          key: compact-0.31.1-${{ runner.os }}
+
       - name: Install Compact toolchain
         # Pinned. A bare `compact update` takes the newest toolchain, and 0.34.0
         # emits contracts that require @midnight-ntwrk/compact-runtime 0.19.x
