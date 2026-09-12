@@ -22,16 +22,16 @@ export const COMPATIBLE_CONNECTOR_API_VERSION = '4.x'
 const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preprod') as NetworkId
 
 /**
- * The live LOWBALL contract on Preprod (deployed at block 2,520,320). Baked as
+ * The live LOWBALL contract on Preprod (deployed at block 2,520,844). Baked as
  * the default so a fresh clone or a Vercel build with no env vars still points
  * at the live drops; VITE_CONTRACT_ADDRESS overrides it for other deploys.
  *
- * Preview -> Preprod on 2026-09-05, multi-drop on 2026-09-12, and bid
- * accumulation the same day: bids now land in a per-drop Set, so every bidder
- * can open their own envelope rather than only the most recent one.
+ * Preview -> Preprod on 2026-09-05; multi-drop, bid accumulation and
+ * claim-order stock enforcement on 2026-09-12. Bids land in a per-drop Set, so
+ * every bidder can open their own envelope, and the first `stock` claims win.
  */
 const PREPROD_CONTRACT =
-  '72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1'
+  'f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc'
 
 /** Per-network faucet + explorer roots. The app runs on Preprod (see README). */
 const FAUCET: Record<NetworkId, string> = {
