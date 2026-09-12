@@ -43,6 +43,13 @@ const openA = (sim: LowballSimulator) =>
 const openB = (sim: LowballSimulator) =>
   sim.createDrop(B, pureCircuits.reserveHash(RESERVE_B, SALT_B), 2n, CLOSE_TIME, "drop-002");
 
+/** Open drop A with an explicit stock — the claim-order tests need headroom. */
+const openAWithStock = (sim: LowballSimulator, stock: bigint) =>
+  sim.createDrop(A, pureCircuits.reserveHash(RESERVE, SALT), stock, CLOSE_TIME, "drop-001");
+
+/** Distinct bidder secrets, as many as a test needs. */
+const secretN = (n: number) => new Uint8Array(32).fill(0xb0 + n);
+
 describe("drop ids", () => {
   it("round-trips a slug through its 32-byte ledger key", () => {
     const key = dropIdBytes("drop-002");
@@ -256,7 +263,7 @@ describe("LOWBALL contract — multi-drop", () => {
     // The L5 case: 50 bidders on one drop, every one of whom must be able to
     // open their own envelope. Before the accumulator, only the last could.
     const sim = new LowballSimulator(withHouseSeed());
-    openA(sim);
+    openAWithStock(sim, 3n);
 
     const bids: readonly [Uint8Array, bigint][] = [
       [SECRET_1, RESERVE + 1n],
@@ -287,7 +294,7 @@ describe("LOWBALL contract — multi-drop", () => {
   it("lets the FIRST bidder win after later bids land", () => {
     // The regression that motivated this: an earlier bid used to be overwritten.
     const sim = new LowballSimulator(withHouseSeed());
-    openA(sim);
+    openAWithStock(sim, 3n);
 
     sim.setPrivateState(withBidder(RESERVE + 5n, SECRET_1));
     sim.placeBid(A);
@@ -353,7 +360,7 @@ describe("LOWBALL contract — multi-drop", () => {
 
   it("records only the clearing bidders when some are under the reserve", () => {
     const sim = new LowballSimulator(withHouseSeed());
-    openA(sim);
+    openAWithStock(sim, 3n);
 
     sim.setPrivateState(withBidder(RESERVE + 5n, SECRET_1));
     sim.placeBid(A);
@@ -375,5 +382,107 @@ describe("LOWBALL contract — multi-drop", () => {
     const l = sim.getLedger();
     expect(l.dropWinners.lookup(A).size()).toEqual(2n);
     expect(l.dropWinners.lookup(A).member(pureCircuits.bidHash(RESERVE - 5n, SECRET_2))).toBe(false);
+  });
+
+  it("caps winners at stock and sells out in claim order", () => {
+    // Five clearing bidders, stock of three: the first three to CLAIM win.
+    const STOCK_M = 3n;
+    const N = 5;
+    const sim = new LowballSimulator(withHouseSeed());
+    openAWithStock(sim, STOCK_M);
+
+    const bidders = Array.from({ length: N }, (_, i) => ({
+      secret: secretN(i),
+      amount: RESERVE + BigInt(i + 1),
+    }));
+
+    for (const b of bidders) {
+      sim.setPrivateState(withBidder(b.amount, b.secret));
+      sim.placeBid(A);
+    }
+
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    // The first three claims succeed.
+    for (const b of bidders.slice(0, 3)) {
+      sim.setPrivateState(withBidder(b.amount, b.secret));
+      expect(() => sim.checkWin(A)).not.toThrow();
+    }
+
+    // Bidder 4 cleared the reserve and still cannot win: the drop is sold out.
+    sim.setPrivateState(withBidder(bidders[3].amount, bidders[3].secret));
+    expect(() => sim.checkWin(A)).toThrow(/drop sold out/);
+    sim.setPrivateState(withBidder(bidders[4].amount, bidders[4].secret));
+    expect(() => sim.checkWin(A)).toThrow(/drop sold out/);
+
+    const l = sim.getLedger();
+    expect(l.dropWinners.lookup(A).size()).toEqual(STOCK_M);
+    expect(l.dropBids.lookup(A).size()).toEqual(BigInt(N));
+    // The losers of the race are not recorded as winners.
+    for (const b of bidders.slice(3)) {
+      expect(l.dropWinners.lookup(A).member(pureCircuits.bidHash(b.amount, b.secret))).toBe(false);
+    }
+  });
+
+  it("sells out a stock-1 drop after its first claim", () => {
+    const sim = new LowballSimulator(withHouseSeed());
+    openAWithStock(sim, 1n);
+
+    for (const i of [0, 1]) {
+      sim.setPrivateState(withBidder(RESERVE + 10n, secretN(i)));
+      sim.placeBid(A);
+    }
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    sim.setPrivateState(withBidder(RESERVE + 10n, secretN(0)));
+    sim.checkWin(A);
+    sim.setPrivateState(withBidder(RESERVE + 10n, secretN(1)));
+    expect(() => sim.checkWin(A)).toThrow(/drop sold out/);
+    expect(sim.getLedger().dropWinners.lookup(A).size()).toEqual(1n);
+  });
+
+  it("still tells an under-reserve bidder they lost, not that it sold out", () => {
+    // Order of asserts matters: a losing bidder learns they lost. Only a bidder
+    // who actually cleared is told the drop sold out.
+    const sim = new LowballSimulator(withHouseSeed());
+    openAWithStock(sim, 1n);
+
+    sim.setPrivateState(withBidder(RESERVE + 10n, secretN(0)));
+    sim.placeBid(A);
+    sim.setPrivateState(withBidder(RESERVE - 10n, secretN(1)));
+    sim.placeBid(A);
+
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    sim.setPrivateState(withBidder(RESERVE + 10n, secretN(0)));
+    sim.checkWin(A); // sells out the drop
+
+    sim.setPrivateState(withBidder(RESERVE - 10n, secretN(1)));
+    expect(() => sim.checkWin(A)).toThrow(/bid below reserve/);
+  });
+
+  it("never records more winners than stock across repeated claims", () => {
+    const sim = new LowballSimulator(withHouseSeed());
+    openAWithStock(sim, 2n);
+
+    for (const i of [0, 1, 2]) {
+      sim.setPrivateState(withBidder(RESERVE + BigInt(i + 1), secretN(i)));
+      sim.placeBid(A);
+    }
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    for (const i of [0, 1, 2, 0, 1, 2]) {
+      sim.setPrivateState(withBidder(RESERVE + BigInt(i + 1), secretN(i)));
+      try {
+        sim.checkWin(A);
+      } catch {
+        // sold out, or already claimed — both are expected here
+      }
+    }
+    expect(sim.getLedger().dropWinners.lookup(A).size()).toEqual(2n);
   });
 });

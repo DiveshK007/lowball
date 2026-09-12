@@ -8,8 +8,13 @@
 // Bids accumulate into a per-drop Set, so every bidder can open their own
 // envelope — see docs/superpowers/plans/2026-09-12-bid-accumulator.md.
 //
+// Stock is enforced by claim order: checkWin succeeds only while the drop has
+// units left (decisions log §10, 2026-09-12). Bid-order priority was specified
+// originally but cannot be implemented without reading other bidders' private
+// amounts — see that entry.
+//
 // Still deferred (see docs/spikes/): no in-circuit deadline, no shielded
-// escrow, no admin gate, and stock is not decremented on a win.
+// escrow, no admin gate.
 
 pragma language_version >= 0.20;
 
@@ -143,5 +148,12 @@ export circuit checkWin(dropId_: Bytes<32>): [] {
     "win already claimed"
   );
   assert(amount >= dropRevealed.lookup(dropId), "bid below reserve");
+  // Claim-order priority: clearing the reserve earns the right to claim, and
+  // the first `stock` claims take the units. Checked after the reserve so a
+  // losing bidder is told they lost rather than that the drop sold out.
+  assert(
+    dropWinners.lookup(dropId).size() < dropStock.lookup(dropId) as Uint<64>,
+    "drop sold out"
+  );
   dropWinners.lookup(dropId).insert(commitment);
 }
