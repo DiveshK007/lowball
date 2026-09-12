@@ -80,6 +80,12 @@ export const asCircuitError = (e: unknown): LowballError => {
   if (isLowballError(e)) return e
   const raw = messageOf(e)
 
+  if (/win already claimed/i.test(raw)) {
+    return new LowballError('tx-failed', 'This envelope is already open.', {
+      hint: 'Your win is already recorded on chain — opening it again changes nothing.',
+      cause: e,
+    })
+  }
   if (/bid below reserve/i.test(raw)) {
     return new LowballError('bid-below-reserve', 'Under the reserve.', {
       hint: 'Your amount stays sealed — nobody learns how close you were.',
@@ -96,12 +102,6 @@ export const asCircuitError = (e: unknown): LowballError => {
   if (/no such drop/i.test(raw)) {
     return new LowballError('drop-not-found', 'No such drop on this contract.', {
       hint: 'The link may be for a drop on an older deployment.',
-      cause: e,
-    })
-  }
-  if (/no bid recorded/i.test(raw)) {
-    return new LowballError('bid-below-reserve', 'No sealed bid to open here.', {
-      hint: 'This device has no bid recorded against this drop.',
       cause: e,
     })
   }

@@ -46,11 +46,13 @@ export const useBidFlow = (
   const place = usePlaceBid(address, dropId)
   const verdict = useVerdict(address, dropId)
 
-  // A journalled bid whose commitment is already the drop's latest one did
-  // reach the chain — the confirmation just never got back to us.
+  // A journalled bid whose commitment is already in the drop's bid set did
+  // reach the chain — the confirmation just never got back to us. Membership,
+  // not "is it the latest": before the accumulator this compared against a
+  // single slot, so any bidder overtaken by a later bid stayed stuck pending.
   useEffect(() => {
     if (!bid || bid.verdict !== 'pending' || !state) return
-    if (state.latestBidCommitmentHex !== bid.commitmentHex) return
+    if (!state.bidCommitmentsHex.includes(bid.commitmentHex)) return
     const settled: StoredBid = { ...bid, verdict: 'sealed' }
     saveBid(settled)
     setBid(settled)

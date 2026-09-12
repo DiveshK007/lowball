@@ -20,9 +20,15 @@ export type DropState = {
   readonly closeTime: Date | null
   readonly metaRef: string
   readonly bidCount: number
-  readonly latestBidCommitmentHex: string
+  /** Every bid commitment on this drop. Public on chain; reveals no amounts. */
+  readonly bidCommitmentsHex: readonly string[]
+  /** Distinct commitments. `bidCount` counts submissions, which can repeat. */
+  readonly distinctBids: number
+  /** How many bidders have opened a winning envelope. */
+  readonly winnerCount: number
   /** Only after the house reveals and the hash check passes. */
   readonly revealedReserve: bigint | null
+  /** Derived from `winnerCount`; kept because the UI asks the question this way. */
   readonly winnerFound: boolean
 }
 

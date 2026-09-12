@@ -18,3 +18,10 @@ export const dropIdBytes = (slug: string): Uint8Array => {
   key.set(utf8)
   return key
 }
+
+/** Recover the slug from a 32-byte ledger key (trailing zero padding removed). */
+export const dropIdSlug = (key: Uint8Array): string => {
+  let end = key.length
+  while (end > 0 && key[end - 1] === 0) end -= 1
+  return new TextDecoder().decode(key.subarray(0, end))
+}

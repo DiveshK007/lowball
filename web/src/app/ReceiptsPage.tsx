@@ -111,7 +111,7 @@ export const ReceiptsPage = () => {
           <div className="hash">
             <span className="hash__label">latest bid commitment</span>
             <span className="hash__value">
-              {state ? groupHex(state.latestBidCommitmentHex) : '—'}
+              {state?.bidCommitmentsHex.length ? groupHex(state.bidCommitmentsHex[state.bidCommitmentsHex.length - 1]) : '—'}
             </span>
           </div>
         </li>

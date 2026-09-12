@@ -60,6 +60,14 @@ const decodeDrop = (ledger: Lowball.Ledger, key: Uint8Array): DropState => {
     })
   }
   const status = ledger.dropStatus.lookup(key)
+  // Sets are iterable from TypeScript; a drop carries tens of commitments, so
+  // reading them all is cheaper than a second round trip to test membership.
+  const bids = ledger.dropBids.member(key)
+    ? Array.from(ledger.dropBids.lookup(key), (c) => toHex(c))
+    : []
+  const winners = ledger.dropWinners.member(key)
+    ? Number(ledger.dropWinners.lookup(key).size())
+    : 0
   return {
     phase: PHASES[status] ?? 'unset',
     commitmentHex: toHex(ledger.dropCommitment.lookup(key)),
@@ -70,16 +78,14 @@ const decodeDrop = (ledger: Lowball.Ledger, key: Uint8Array): DropState => {
     bidCount: ledger.dropBidCount.member(key)
       ? Number(ledger.dropBidCount.lookup(key).read())
       : 0,
-    latestBidCommitmentHex: ledger.dropLatestBid.member(key)
-      ? toHex(ledger.dropLatestBid.lookup(key))
-      : '',
+    bidCommitmentsHex: bids,
+    distinctBids: bids.length,
     revealedReserve:
       status === Lowball.DropStatus.REVEALED && ledger.dropRevealed.member(key)
         ? ledger.dropRevealed.lookup(key)
         : null,
-    winnerFound: ledger.dropWinnerFound.member(key)
-      ? ledger.dropWinnerFound.lookup(key)
-      : false,
+    winnerCount: winners,
+    winnerFound: winners > 0,
   }
 }
 
