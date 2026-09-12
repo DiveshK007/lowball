@@ -15,6 +15,7 @@ export type LowballErrorCode =
   | 'insufficient-dust'
   | 'proof-server-unreachable'
   | 'drop-not-open'
+  | 'drop-sold-out'
   | 'bid-below-reserve'
   | 'reserve-not-revealed'
   | 'tx-failed'
@@ -80,6 +81,12 @@ export const asCircuitError = (e: unknown): LowballError => {
   if (isLowballError(e)) return e
   const raw = messageOf(e)
 
+  if (/drop sold out/i.test(raw)) {
+    return new LowballError('drop-sold-out', 'This drop sold out.', {
+      hint: 'Your bid cleared the reserve, but the last unit was claimed first. Nothing was spent.',
+      cause: e,
+    })
+  }
   if (/win already claimed/i.test(raw)) {
     return new LowballError('tx-failed', 'This envelope is already open.', {
       hint: 'Your win is already recorded on chain — opening it again changes nothing.',
