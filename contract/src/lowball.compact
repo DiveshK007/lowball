@@ -5,8 +5,11 @@
 // single-drop shortcut; see decisions log §10 and
 // docs/superpowers/plans/2026-09-12-multi-drop.md.
 //
+// Bids accumulate into a per-drop Set, so every bidder can open their own
+// envelope — see docs/superpowers/plans/2026-09-12-bid-accumulator.md.
+//
 // Still deferred (see docs/spikes/): no in-circuit deadline, no shielded
-// escrow, no admin gate, and only the latest bid per drop can be opened.
+// escrow, no admin gate, and stock is not decremented on a win.
 
 pragma language_version >= 0.20;
 
@@ -31,9 +34,15 @@ export ledger dropStock: Map<Bytes<32>, Uint<32>>;
 export ledger dropCloseTime: Map<Bytes<32>, Uint<64>>;
 export ledger dropMetaRef: Map<Bytes<32>, Opaque<"string">>;
 export ledger dropBidCount: Map<Bytes<32>, Counter>;
-export ledger dropLatestBid: Map<Bytes<32>, Bytes<32>>;
+// Every bid commitment placed on a drop. A Set, not a single slot: a slot is
+// overwritten by the next bid, which left every bidder but the last unable to
+// prove anything. Membership is the public half of the win proof; the amount
+// and secret behind each commitment stay witnesses.
+export ledger dropBids: Map<Bytes<32>, Set<Bytes<32>>>;
 export ledger dropRevealed: Map<Bytes<32>, Uint<64>>;
-export ledger dropWinnerFound: Map<Bytes<32>, Boolean>;
+// Commitments that have claimed a win. Its size is the winner count, so there
+// is no separate boolean to drift out of step with it.
+export ledger dropWinners: Map<Bytes<32>, Set<Bytes<32>>>;
 export ledger dropCount: Counter;
 
 // Private witnesses (see docs/architecture.md §3.1)
@@ -80,6 +89,8 @@ export circuit createDrop(
   dropMetaRef.insert(dropId, disclose(metaRef_));
   // Nested ledger values must be initialised before first use.
   dropBidCount.insert(dropId, default<Counter>);
+  dropBids.insert(dropId, default<Set<Bytes<32>>>);
+  dropWinners.insert(dropId, default<Set<Bytes<32>>>);
   dropStatus.insert(dropId, DropStatus.OPEN);
   dropCount.increment(1);
 }
@@ -90,8 +101,7 @@ export circuit placeBid(dropId_: Bytes<32>): [] {
   const dropId = disclose(dropId_);
   assert(dropStatus.member(dropId), "no such drop");
   assert(dropStatus.lookup(dropId) == DropStatus.OPEN, "drop not open");
-  dropLatestBid.insert(
-    dropId,
+  dropBids.lookup(dropId).insert(
     disclose(bidHash(bidAmountWitness(), bidderSecretWitness()))
   );
   dropBidCount.lookup(dropId).increment(1);
@@ -113,9 +123,11 @@ export circuit revealReserve(dropId_: Bytes<32>): [] {
   dropStatus.insert(dropId, DropStatus.REVEALED);
 }
 
-// checkWin: post-reveal verdict for one drop. The bidder proves they placed the
-// commitment recorded against that drop and that its amount clears that drop's
-// revealed reserve. On LOSS the assert fails and nothing is disclosed.
+// checkWin: post-reveal verdict for one drop. The bidder proves membership of
+// their own commitment in the drop's bid set and that the amount behind it
+// clears the revealed reserve — neither number is disclosed. Independent of
+// every other bidder, so any number of them can win. On LOSS the assert fails
+// and nothing is disclosed.
 export circuit checkWin(dropId_: Bytes<32>): [] {
   const dropId = disclose(dropId_);
   assert(dropStatus.member(dropId), "no such drop");
@@ -123,12 +135,13 @@ export circuit checkWin(dropId_: Bytes<32>): [] {
     dropStatus.lookup(dropId) == DropStatus.REVEALED,
     "reserve not yet revealed"
   );
-  assert(dropLatestBid.member(dropId), "no bid recorded for this drop");
   const amount = bidAmountWitness();
+  const commitment = disclose(bidHash(amount, bidderSecretWitness()));
+  assert(dropBids.lookup(dropId).member(commitment), "bid preimage mismatch");
   assert(
-    bidHash(amount, bidderSecretWitness()) == dropLatestBid.lookup(dropId),
-    "bid preimage mismatch"
+    !dropWinners.lookup(dropId).member(commitment),
+    "win already claimed"
   );
   assert(amount >= dropRevealed.lookup(dropId), "bid below reserve");
-  dropWinnerFound.insert(dropId, true);
+  dropWinners.lookup(dropId).insert(commitment);
 }

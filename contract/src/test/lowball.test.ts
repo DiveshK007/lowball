@@ -12,6 +12,10 @@ const SALT = new Uint8Array(32).fill(0x11);
 const SALT_B = new Uint8Array(32).fill(0x33);
 const BIDDER_SECRET = new Uint8Array(32).fill(0x22);
 const OTHER_SECRET = new Uint8Array(32).fill(0x44);
+// Three distinct bidders for the accumulator tests — the L5 case.
+const SECRET_1 = new Uint8Array(32).fill(0xa1);
+const SECRET_2 = new Uint8Array(32).fill(0xa2);
+const SECRET_3 = new Uint8Array(32).fill(0xa3);
 const RESERVE = 100n;
 const RESERVE_B = 500n;
 const STOCK = 1n;
@@ -118,7 +122,7 @@ describe("LOWBALL contract — multi-drop", () => {
     expect(l.dropBidCount.lookup(B).read()).toEqual(1n);
   });
 
-  it("keeps each drop's latest bid commitment separate", () => {
+  it("keeps each drop's bid set separate", () => {
     const sim = new LowballSimulator();
     openA(sim);
     openB(sim);
@@ -129,8 +133,11 @@ describe("LOWBALL contract — multi-drop", () => {
     sim.placeBid(B);
 
     const l = sim.getLedger();
-    expect(l.dropLatestBid.lookup(A)).toEqual(pureCircuits.bidHash(150n, BIDDER_SECRET));
-    expect(l.dropLatestBid.lookup(B)).toEqual(pureCircuits.bidHash(600n, BIDDER_SECRET));
+    expect(l.dropBids.lookup(A).member(pureCircuits.bidHash(150n, BIDDER_SECRET))).toBe(true);
+    expect(l.dropBids.lookup(B).member(pureCircuits.bidHash(600n, BIDDER_SECRET))).toBe(true);
+    // A bid on A is not a member of B's set, and vice versa.
+    expect(l.dropBids.lookup(B).member(pureCircuits.bidHash(150n, BIDDER_SECRET))).toBe(false);
+    expect(l.dropBids.lookup(A).member(pureCircuits.bidHash(600n, BIDDER_SECRET))).toBe(false);
   });
 
   it("revealReserve accepts the matching preimage and discloses that drop's reserve", () => {
@@ -183,8 +190,9 @@ describe("LOWBALL contract — multi-drop", () => {
     sim.checkWin(A);
 
     const l = sim.getLedger();
-    expect(l.dropWinnerFound.lookup(A)).toBe(true);
-    expect(l.dropWinnerFound.member(B)).toBe(false);
+    expect(l.dropWinners.lookup(A).size()).toEqual(1n);
+    expect(l.dropWinners.lookup(A).member(pureCircuits.bidHash(winningBid, BIDDER_SECRET))).toBe(true);
+    expect(l.dropWinners.lookup(B).isEmpty()).toBe(true);
   });
 
   it("checkWin refuses to mark a winner when the bid is under that drop's reserve", () => {
@@ -200,7 +208,7 @@ describe("LOWBALL contract — multi-drop", () => {
 
     sim.setPrivateState(withBidder(losingBid));
     expect(() => sim.checkWin(A)).toThrow(/bid below reserve/);
-    expect(sim.getLedger().dropWinnerFound.member(A)).toBe(false);
+    expect(sim.getLedger().dropWinners.lookup(A).isEmpty()).toBe(true);
   });
 
   it("refuses checkWin before that drop's reserve is revealed", () => {
@@ -233,11 +241,139 @@ describe("LOWBALL contract — multi-drop", () => {
   });
 
   it("refuses checkWin on a drop that has no bids", () => {
+    // An empty bid set and a commitment that is not in it are the same
+    // condition: membership cannot be proved. One message, not two.
     const sim = new LowballSimulator(withHouseSeed());
     openA(sim);
     sim.revealReserve(A);
 
     sim.setPrivateState(withBidder(150n));
-    expect(() => sim.checkWin(A)).toThrow(/no bid recorded/);
+    expect(() => sim.checkWin(A)).toThrow(/bid preimage mismatch/);
+    expect(sim.getLedger().dropBids.lookup(A).isEmpty()).toBe(true);
+  });
+
+  it("lets three distinct bidders all pass checkWin on the same drop", () => {
+    // The L5 case: 50 bidders on one drop, every one of whom must be able to
+    // open their own envelope. Before the accumulator, only the last could.
+    const sim = new LowballSimulator(withHouseSeed());
+    openA(sim);
+
+    const bids: readonly [Uint8Array, bigint][] = [
+      [SECRET_1, RESERVE + 1n],
+      [SECRET_2, RESERVE + 40n],
+      [SECRET_3, RESERVE + 900n],
+    ];
+
+    for (const [secret, amount] of bids) {
+      sim.setPrivateState(withBidder(amount, secret));
+      sim.placeBid(A);
+    }
+
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    for (const [secret, amount] of bids) {
+      sim.setPrivateState(withBidder(amount, secret));
+      sim.checkWin(A);
+    }
+
+    const l = sim.getLedger();
+    expect(l.dropWinners.lookup(A).size()).toEqual(3n);
+    for (const [secret, amount] of bids) {
+      expect(l.dropWinners.lookup(A).member(pureCircuits.bidHash(amount, secret))).toBe(true);
+    }
+  });
+
+  it("lets the FIRST bidder win after later bids land", () => {
+    // The regression that motivated this: an earlier bid used to be overwritten.
+    const sim = new LowballSimulator(withHouseSeed());
+    openA(sim);
+
+    sim.setPrivateState(withBidder(RESERVE + 5n, SECRET_1));
+    sim.placeBid(A);
+    sim.setPrivateState(withBidder(RESERVE + 6n, SECRET_2));
+    sim.placeBid(A);
+    sim.setPrivateState(withBidder(RESERVE + 7n, SECRET_3));
+    sim.placeBid(A);
+
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    // The first bidder, two bids later, still opens their own envelope.
+    sim.setPrivateState(withBidder(RESERVE + 5n, SECRET_1));
+    expect(() => sim.checkWin(A)).not.toThrow();
+    expect(
+      sim.getLedger().dropWinners.lookup(A).member(pureCircuits.bidHash(RESERVE + 5n, SECRET_1)),
+    ).toBe(true);
+  });
+
+  it("counts submissions and distinct commitments separately", () => {
+    const sim = new LowballSimulator();
+    openA(sim);
+
+    sim.setPrivateState(withBidder(200n, SECRET_1));
+    sim.placeBid(A);
+    sim.placeBid(A); // identical amount + secret → same commitment
+    sim.setPrivateState(withBidder(300n, SECRET_2));
+    sim.placeBid(A);
+
+    const l = sim.getLedger();
+    expect(l.dropBidCount.lookup(A).read()).toEqual(3n); // submissions
+    expect(l.dropBids.lookup(A).size()).toEqual(2n); // distinct commitments
+  });
+
+  it("refuses a second claim on an already-claimed win", () => {
+    const sim = new LowballSimulator(withHouseSeed());
+    openA(sim);
+    sim.setPrivateState(withBidder(RESERVE + 10n, SECRET_1));
+    sim.placeBid(A);
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    sim.setPrivateState(withBidder(RESERVE + 10n, SECRET_1));
+    sim.checkWin(A);
+    expect(() => sim.checkWin(A)).toThrow(/win already claimed/);
+    // The winner count must not inflate — L5 evidence rests on it.
+    expect(sim.getLedger().dropWinners.lookup(A).size()).toEqual(1n);
+  });
+
+  it("refuses a bidder who never bid on this drop", () => {
+    const sim = new LowballSimulator(withHouseSeed());
+    openA(sim);
+    sim.setPrivateState(withBidder(RESERVE + 1n, SECRET_1));
+    sim.placeBid(A);
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    // SECRET_2 never placed a bid here.
+    sim.setPrivateState(withBidder(RESERVE + 1n, SECRET_2));
+    expect(() => sim.checkWin(A)).toThrow(/bid preimage mismatch/);
+    expect(sim.getLedger().dropWinners.lookup(A).isEmpty()).toBe(true);
+  });
+
+  it("records only the clearing bidders when some are under the reserve", () => {
+    const sim = new LowballSimulator(withHouseSeed());
+    openA(sim);
+
+    sim.setPrivateState(withBidder(RESERVE + 5n, SECRET_1));
+    sim.placeBid(A);
+    sim.setPrivateState(withBidder(RESERVE - 5n, SECRET_2)); // loses
+    sim.placeBid(A);
+    sim.setPrivateState(withBidder(RESERVE, SECRET_3)); // exactly clears
+    sim.placeBid(A);
+
+    sim.setPrivateState(withHouseSeed());
+    sim.revealReserve(A);
+
+    sim.setPrivateState(withBidder(RESERVE + 5n, SECRET_1));
+    sim.checkWin(A);
+    sim.setPrivateState(withBidder(RESERVE - 5n, SECRET_2));
+    expect(() => sim.checkWin(A)).toThrow(/bid below reserve/);
+    sim.setPrivateState(withBidder(RESERVE, SECRET_3));
+    sim.checkWin(A);
+
+    const l = sim.getLedger();
+    expect(l.dropWinners.lookup(A).size()).toEqual(2n);
+    expect(l.dropWinners.lookup(A).member(pureCircuits.bidHash(RESERVE - 5n, SECRET_2))).toBe(false);
   });
 });
