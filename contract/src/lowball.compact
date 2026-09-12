@@ -1,7 +1,12 @@
 // LOWBALL — sealed-bid mystery drop.
-// L1 skeleton: single-drop-per-contract, no in-circuit deadline, no
-// shielded escrow (see docs/spikes/ for the decisions behind these
-// simplifications). Multi-drop, admin gating, and escrow arrive later.
+//
+// Multi-drop: one deployment carries many drops, keyed by a Bytes<32> drop id
+// (the slug, UTF-8, zero-padded — see src/drop-id.ts). This reverses the L1
+// single-drop shortcut; see decisions log §10 and
+// docs/superpowers/plans/2026-09-12-multi-drop.md.
+//
+// Still deferred (see docs/spikes/): no in-circuit deadline, no shielded
+// escrow, no admin gate, and only the latest bid per drop can be opened.
 
 pragma language_version >= 0.20;
 
@@ -13,16 +18,23 @@ export enum DropStatus {
   REVEALED
 }
 
-// Public ledger state (see docs/architecture.md §3.1)
-export ledger status: DropStatus;
-export ledger commitment: Bytes<32>;
-export ledger stock: Uint<32>;
-export ledger closeTime: Uint<64>;
-export ledger metaRef: Opaque<"string">;
-export ledger bidCount: Counter;
-export ledger latestBidCommitment: Bytes<32>;
-export ledger revealedReserve: Uint<64>;
-export ledger winnerFound: Boolean;
+// Public ledger state (see docs/architecture.md §3.1), one entry per drop.
+//
+// Deliberately flattened into sibling maps rather than one Map<DropId, struct>.
+// A struct value would force a read-modify-write of the whole record on every
+// bid, and a Cell read commits the transaction to the field's current value —
+// so two bidders in the same block would collide. Counter.increment carries no
+// such constraint, which is what makes concurrent bidding safe.
+export ledger dropStatus: Map<Bytes<32>, DropStatus>;
+export ledger dropCommitment: Map<Bytes<32>, Bytes<32>>;
+export ledger dropStock: Map<Bytes<32>, Uint<32>>;
+export ledger dropCloseTime: Map<Bytes<32>, Uint<64>>;
+export ledger dropMetaRef: Map<Bytes<32>, Opaque<"string">>;
+export ledger dropBidCount: Map<Bytes<32>, Counter>;
+export ledger dropLatestBid: Map<Bytes<32>, Bytes<32>>;
+export ledger dropRevealed: Map<Bytes<32>, Uint<64>>;
+export ledger dropWinnerFound: Map<Bytes<32>, Boolean>;
+export ledger dropCount: Counter;
 
 // Private witnesses (see docs/architecture.md §3.1)
 witness bidAmountWitness(): Uint<64>;
@@ -50,55 +62,73 @@ export circuit reserveHash(reserve: Uint<64>, salt: Bytes<32>): Bytes<32> {
   ]);
 }
 
-// createDrop: publish the sealed reserve commitment + drop config.
-// L1: no admin gate; one drop per deployed contract.
+// createDrop: publish one drop's sealed reserve commitment + config.
+// Ids are unique for the contract's lifetime; re-using one is rejected rather
+// than silently overwriting a live drop's commitment.
 export circuit createDrop(
+  dropId_: Bytes<32>,
   commitment_: Bytes<32>,
   stock_: Uint<32>,
   closeTime_: Uint<64>,
   metaRef_: Opaque<"string">
 ): [] {
-  assert(status == DropStatus.UNSET, "drop already created");
-  commitment = disclose(commitment_);
-  stock = disclose(stock_);
-  closeTime = disclose(closeTime_);
-  metaRef = disclose(metaRef_);
-  status = DropStatus.OPEN;
+  const dropId = disclose(dropId_);
+  assert(!dropStatus.member(dropId), "drop already exists");
+  dropCommitment.insert(dropId, disclose(commitment_));
+  dropStock.insert(dropId, disclose(stock_));
+  dropCloseTime.insert(dropId, disclose(closeTime_));
+  dropMetaRef.insert(dropId, disclose(metaRef_));
+  // Nested ledger values must be initialised before first use.
+  dropBidCount.insert(dropId, default<Counter>);
+  dropStatus.insert(dropId, DropStatus.OPEN);
+  dropCount.increment(1);
 }
 
-// placeBid: seal a bid as a commitment. Verdict deferred to checkWin
-// per spec §10 (L1 uses spec §3.4 fallback funds path).
-export circuit placeBid(): [] {
-  assert(status == DropStatus.OPEN, "drop not open");
-  latestBidCommitment = disclose(
-    bidHash(bidAmountWitness(), bidderSecretWitness())
+// placeBid: seal a bid as a commitment against one drop. Verdict deferred to
+// checkWin per spec §10 (L1 uses spec §3.4 fallback funds path).
+export circuit placeBid(dropId_: Bytes<32>): [] {
+  const dropId = disclose(dropId_);
+  assert(dropStatus.member(dropId), "no such drop");
+  assert(dropStatus.lookup(dropId) == DropStatus.OPEN, "drop not open");
+  dropLatestBid.insert(
+    dropId,
+    disclose(bidHash(bidAmountWitness(), bidderSecretWitness()))
   );
-  bidCount.increment(1);
+  dropBidCount.lookup(dropId).increment(1);
 }
 
-// revealReserve: hash the (reserve, salt) witnesses and assert they
-// match the committed hash. Tampered reveals fail the assert.
-export circuit revealReserve(): [] {
-  assert(status == DropStatus.OPEN, "drop not open");
+// revealReserve: hash the (reserve, salt) witnesses and assert they match the
+// commitment published for this drop. Tampered reveals fail the assert, and
+// every other drop is untouched.
+export circuit revealReserve(dropId_: Bytes<32>): [] {
+  const dropId = disclose(dropId_);
+  assert(dropStatus.member(dropId), "no such drop");
+  assert(dropStatus.lookup(dropId) == DropStatus.OPEN, "drop not open");
   const reserve = reserveWitness();
   assert(
-    reserveHash(reserve, saltWitness()) == commitment,
+    reserveHash(reserve, saltWitness()) == dropCommitment.lookup(dropId),
     "reveal does not match commitment"
   );
-  revealedReserve = disclose(reserve);
-  status = DropStatus.REVEALED;
+  dropRevealed.insert(dropId, disclose(reserve));
+  dropStatus.insert(dropId, DropStatus.REVEALED);
 }
 
-// checkWin: post-reveal verdict. Bidder proves they placed the recorded
-// bid and its amount is >= the revealed reserve. On WIN, winnerFound
-// becomes true. On LOSS the assert fails (nothing disclosed).
-export circuit checkWin(): [] {
-  assert(status == DropStatus.REVEALED, "reserve not yet revealed");
+// checkWin: post-reveal verdict for one drop. The bidder proves they placed the
+// commitment recorded against that drop and that its amount clears that drop's
+// revealed reserve. On LOSS the assert fails and nothing is disclosed.
+export circuit checkWin(dropId_: Bytes<32>): [] {
+  const dropId = disclose(dropId_);
+  assert(dropStatus.member(dropId), "no such drop");
+  assert(
+    dropStatus.lookup(dropId) == DropStatus.REVEALED,
+    "reserve not yet revealed"
+  );
+  assert(dropLatestBid.member(dropId), "no bid recorded for this drop");
   const amount = bidAmountWitness();
   assert(
-    bidHash(amount, bidderSecretWitness()) == latestBidCommitment,
+    bidHash(amount, bidderSecretWitness()) == dropLatestBid.lookup(dropId),
     "bid preimage mismatch"
   );
-  assert(amount >= revealedReserve, "bid below reserve");
-  winnerFound = true;
+  assert(amount >= dropRevealed.lookup(dropId), "bid below reserve");
+  dropWinnerFound.insert(dropId, true);
 }

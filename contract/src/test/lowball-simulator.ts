@@ -53,6 +53,7 @@ export class LowballSimulator {
   }
 
   public createDrop(
+    dropId: Uint8Array,
     commitment: Uint8Array,
     stock: bigint,
     closeTime: bigint,
@@ -60,6 +61,7 @@ export class LowballSimulator {
   ): Ledger {
     this.circuitContext = this.contract.impureCircuits.createDrop(
       this.circuitContext,
+      dropId,
       commitment,
       stock,
       closeTime,
@@ -68,23 +70,26 @@ export class LowballSimulator {
     return this.getLedger();
   }
 
-  public placeBid(): Ledger {
+  public placeBid(dropId: Uint8Array): Ledger {
     this.circuitContext = this.contract.impureCircuits.placeBid(
       this.circuitContext,
+      dropId,
     ).context;
     return this.getLedger();
   }
 
-  public revealReserve(): Ledger {
+  public revealReserve(dropId: Uint8Array): Ledger {
     this.circuitContext = this.contract.impureCircuits.revealReserve(
       this.circuitContext,
+      dropId,
     ).context;
     return this.getLedger();
   }
 
-  public checkWin(): Ledger {
+  public checkWin(dropId: Uint8Array): Ledger {
     this.circuitContext = this.contract.impureCircuits.checkWin(
       this.circuitContext,
+      dropId,
     ).context;
     return this.getLedger();
   }
