@@ -64,6 +64,25 @@ claims: Map<ClaimId, { dropId: DropId, owner: PublicAddress }>  // won items ("t
 admin: PublicAddress         // house key, set at deploy
 ```
 
+**As built (2026-09-12).** The design above is one map of structs; the contract ships
+the same information as **flattened sibling maps keyed by the same `dropId`**:
+
+```
+dropStatus, dropCommitment, dropStock, dropCloseTime, dropMetaRef,
+dropBidCount, dropLatestBid, dropRevealed, dropWinnerFound : Map<Bytes<32>, …>
+dropCount : Counter
+```
+
+Two reasons, both discovered while building it. A struct value forces a whole-record
+read-modify-write on every bid, and a `Cell` read commits the transaction to that
+field's current value — so two bidders in the same block collide, which is exactly the
+concurrency L5 exists to demonstrate; `Counter.increment` has no such constraint. And
+flattening keeps the ledger readable by indexers that cannot decode structs. `dropId` is
+the drop slug as UTF-8 zero-padded to 32 bytes.
+
+Not yet built: `claims`, `admin`, `EXPIRED`, and the `CLOSED` phase (status goes
+`UNSET → OPEN → REVEALED`). See decisions log §10, 2026-09-12.
+
 **Private state / witnesses** (never on ledger):
 
 ```
