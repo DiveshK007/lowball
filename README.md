@@ -17,21 +17,23 @@ The only things ever made public are the things that keep the house honest: the 
 | | |
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
-| **Contract (Preprod)** | [`72dfe029…f169a4b1`](https://lowball-orpin.vercel.app/drop/drop-001) — **two drops open now**, closing 2026-11-01; reads Preprod chain state |
+| **Contract (Preprod)** | [`f81e44ea…d9ec66dc`](https://lowball-orpin.vercel.app/drop/drop-001) — **two drops open now** (stock 50 and 25), closing 2026-12-31 |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 | **Demo video** | [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — wallet connect, sealed bid, verdict, tests, CI |
 
-> **Current chain state.** One contract holds every drop, and every bidder on a drop can
-> open their own envelope. **`drop-001` (Genesis Envelope)** and **`drop-002` (Second
-> Envelope)** are **open on Preprod** until **2026-11-01**; a third drop, `drop-proof`,
-> is closed and carries the evidence that the accumulator works — **three distinct
-> bidders, three distinct sealed bids, three winners**. Browsing needs no wallet. Check
-> what is on chain right now:
+> **Current chain state.** One contract holds every drop; every bidder on a drop can
+> open their own envelope, and the first `stock` bidders to claim take the units.
+> **`drop-001` (Genesis Envelope, stock 50)** and **`drop-002` (Second Envelope,
+> stock 25)** are **open on Preprod** until **2026-12-31** — stocked generously and
+> priced low so most bidders win. A third drop, `drop-soldout`, is closed and carries
+> the evidence for stock enforcement: **stock 2, three sealed bids, two winners**, with
+> the third bidder told the drop sold out. Browsing needs no wallet. Check what is on
+> chain right now:
 >
 > ```bash
 > curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
 >   -H 'content-type: application/json' \
->   -d '{"query":"{contractAction(address:\"72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1\"){__typename ... on ContractCall{entryPoint}}}"}'
+>   -d '{"query":"{contractAction(address:\"f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc\"){__typename ... on ContractCall{entryPoint}}}"}'
 > ```
 
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preprod**, and fund it at the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
@@ -52,7 +54,8 @@ The 60-second walkthrough:
 
 | Network | Address | State |
 |---|---|---|
-| **Preprod — live** | **`72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1`** | **2 drops open** to 2026-11-01 · 3-winner proof drop |
+| **Preprod — live** | **`f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`** | **2 drops open** to 2026-12-31 · sold-out proof drop |
+| Preprod (superseded, accumulator) | `72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1` | every bidder could win, but stock was unenforced |
 | Preprod (superseded, multi-drop) | `edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7` | many drops, but only the latest bidder could win |
 | Preprod (superseded, single-drop) | `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` | one drop, closes 2026-09-19 |
 | Preprod (superseded) | `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272` | bare deploy, no drop |
@@ -60,15 +63,23 @@ The 60-second walkthrough:
 | Preview (L1 record) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` | reserve revealed only |
 
 The app runs on **Preprod**, and this is the address it reads. Deployed at block
-**2,520,320** and carrying three drops: **`drop-001`** (Genesis Envelope, stock 1) and
-**`drop-002`** (Second Envelope, stock 2), both open until **2026-11-01**, plus
-**`drop-proof`** (stock 3), which is closed and exists as evidence.
+**2,520,844**, carrying three drops:
 
-`drop-proof` is the acceptance test for the bid accumulator, run on chain rather than
-asserted: three distinct bidders placed three distinct sealed bids, the house revealed,
-and **all three passed `checkWin`**. The ledger records 3 submissions, 3 distinct
-commitments and 3 winners. Before this change only the most recent bidder on a drop
-could win at all — the contract kept one bid slot, and each new bid overwrote it.
+| Drop | Stock | State |
+|---|---|---|
+| `drop-001` Genesis Envelope | 50 | open to 2026-12-31 |
+| `drop-002` Second Envelope | 25 | open to 2026-12-31 |
+| `drop-soldout` Sold-Out Proof | 2 | closed — 3 bids, **2 winners** |
+
+Two things are proved on chain rather than asserted. **Every bidder can win**: bids
+accumulate into a per-drop set, so any bidder can prove their own commitment is in it —
+before this, the contract kept a single bid slot and each new bid overwrote the last, so
+only the most recent bidder could win at all. **Stock is enforced by claim order**:
+`drop-soldout` carries stock 2 against three clearing bids and recorded exactly two
+winners, with the third bidder rejected by an in-circuit `drop sold out` assert.
+
+Bid-order priority was the original rule (architecture §3.3) and turned out to be
+unimplementable without disclosing bid amounts — see decisions log §10, 2026-09-12.
 
 Each drop's reserve is **sealed** — only its commitment is public, and the amount is
 disclosed at reveal.
