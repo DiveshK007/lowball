@@ -17,7 +17,7 @@ decisions log §10 in `docs/superpowers/specs/2026-07-19-lowball-design.md`.
 | Requirement | Status | Evidence |
 |---|---|---|
 | MVP live on Preprod (verifiable address) | ✅ | `3fac6305…2120b446` — deploy block 2,419,510, drop open at block 2,419,536 |
-| `docs/USAGE.md` | ❌ | Not yet written |
+| `docs/USAGE.md` | ✅ | [`docs/USAGE.md`](../../USAGE.md) — first-time bidder guide, linked from the README |
 | README + setup docs | ✅ | README → *Prerequisites*, *Setup & Run Locally*, *Run Tests* |
 | CI/CD passing | ✅ | [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml), two jobs |
 | X product profile posting every drop | ❌ | Handle candidates only, in [`docs/traction.md`](../../traction.md) |
@@ -55,6 +55,5 @@ Preprod indexer, 0 of the Preview indexer. See decisions log §10, entries dated
 
 ## Still outstanding for L4
 
-- **`docs/USAGE.md`** — not written.
 - **X product profile** — not created; handle candidates only, in `docs/traction.md`.
 - **Commit count** — the 15+ in-window commits are accumulating from 2026-09-05.
