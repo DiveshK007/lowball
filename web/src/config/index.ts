@@ -22,16 +22,16 @@ export const COMPATIBLE_CONNECTOR_API_VERSION = '4.x'
 const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preprod') as NetworkId
 
 /**
- * The live LOWBALL contract on Preprod (deployed at block 2,419,510). Baked as
+ * The live LOWBALL contract on Preprod (deployed at block 2,519,627). Baked as
  * the default so a fresh clone or a Vercel build with no env vars still points
- * at the live drop; VITE_CONTRACT_ADDRESS overrides it for other deploys.
+ * at the live drops; VITE_CONTRACT_ADDRESS overrides it for other deploys.
  *
- * The project consolidated Preview -> Preprod on 2026-09-05 (decisions log §10):
- * L4 requires the MVP live on Preprod, and running two networks meant the
- * shipped app never actually read the address being submitted.
+ * The project consolidated Preview -> Preprod on 2026-09-05 (decisions log §10),
+ * and moved to a multi-drop contract on 2026-09-12 — this address holds every
+ * drop, so opening one no longer needs a deployment or a web build.
  */
 const PREPROD_CONTRACT =
-  '3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446'
+  'edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7'
 
 /** Per-network faucet + explorer roots. The app runs on Preprod (see README). */
 const FAUCET: Record<NetworkId, string> = {
