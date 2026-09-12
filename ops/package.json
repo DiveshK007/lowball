@@ -13,7 +13,10 @@
     "create-drop": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/create-drop.ts",
     "close-and-reveal": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/close-and-reveal.ts",
     "sync:contract": "rm -rf managed && mkdir -p managed && cp -R ../contract/src/managed/lowball managed/lowball",
-    "simulate-bidders": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/simulate-bidders.ts"
+    "simulate-bidders": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/simulate-bidders.ts",
+    "precreate-drop": "npm run sync:contract",
+    "preclose-and-reveal": "npm run sync:contract",
+    "presimulate-bidders": "npm run sync:contract"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",
