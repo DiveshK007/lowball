@@ -136,6 +136,19 @@ expireDrop(dropId)   // permissionless safety valve
   effect: status = EXPIRED; all escrows refundable → house cannot strand users
 ```
 
+**As built (2026-09-12) — winner selection is claim order, not bid order.** The
+`placeBid` sketch above puts the verdict in-circuit at bid time and awards stock by
+bid order. Neither survived contact:
+
+- The verdict moved to `checkWin`, post-reveal (decisions log §10, 2026-07-19).
+- **Stock is awarded in claim order**: `checkWin` succeeds only while
+  `dropWinners.size() < stock`. Bid-order priority cannot be implemented without
+  knowing which *earlier* bidders cleared the reserve, which is a fact about their
+  private bid amounts — available neither to another bidder nor to the house without
+  breaking the product's central privacy claim. See decisions log §10, 2026-09-12.
+- `stock` is therefore compared against the winner count rather than decremented; the
+  ledger keeps `dropStock` immutable and `dropWinners` grows to meet it.
+
 ### 3.4 Funds paths
 
 **Primary (spike-confirmed):** shielded tDUST escrow inside `placeBid`; kept on win, auto-returned on loss.
