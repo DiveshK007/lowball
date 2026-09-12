@@ -17,19 +17,21 @@ The only things ever made public are the things that keep the house honest: the 
 | | |
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
-| **Contract (Preprod)** | [`3fac6305…2120b446`](https://lowball-orpin.vercel.app/drop/drop-001) — **drop open now**, closes 2026-09-19; reads Preprod chain state |
+| **Contract (Preprod)** | [`edae3255…b468dc7`](https://lowball-orpin.vercel.app/drop/drop-001) — **two drops open now**, closing 2026-11-01; reads Preprod chain state |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 | **Demo video** | [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — wallet connect, sealed bid, verdict, tests, CI |
 
-> **Current chain state.** The **Genesis Envelope** drop is **open on Preprod** until
-> **2026-09-19 17:35 UTC** — reserve sealed, no bids yet. Browsing the gallery, the drop
-> page and the public receipts need no wallet; bidding needs Lace on Preprod. Verify the
-> drop exists with a single query against the Preprod indexer (`createDrop` = open):
+> **Current chain state.** One contract holds every drop. **`drop-001` (Genesis
+> Envelope)** and **`drop-002` (Second Envelope)** are both **open on Preprod** until
+> **2026-11-01** — reserves sealed, no bids yet. Browsing the gallery, the drop pages
+> and the public receipts need no wallet; bidding needs Lace on Preprod. The gallery
+> lists whatever the contract holds, so opening a drop needs neither a deployment nor a
+> web build. Check what is on chain right now (`createDrop` = the most recent call):
 >
 > ```bash
 > curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
 >   -H 'content-type: application/json' \
->   -d '{"query":"{contractAction(address:\"3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446\"){__typename ... on ContractCall{entryPoint}}}"}'
+>   -d '{"query":"{contractAction(address:\"edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7\"){__typename ... on ContractCall{entryPoint}}}"}'
 > ```
 
 Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preprod**, and fund it at the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
@@ -50,26 +52,31 @@ The 60-second walkthrough:
 
 | Network | Address | State |
 |---|---|---|
-| **Preprod — live** | **`3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446`** | **drop open**, closes 2026-09-19 |
+| **Preprod — live (multi-drop)** | **`edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7`** | **2 drops open**, closing 2026-11-01 |
+| Preprod (superseded, single-drop) | `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` | one drop, closes 2026-09-19 |
 | Preprod (superseded) | `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272` | bare deploy, no drop |
 | Preview (full loop) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` | closed, win claimed |
 | Preview (L1 record) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` | reserve revealed only |
 
 The app runs on **Preprod**, and this is the address it reads. Deployed at block
-**2,419,510** (tx `79061bfb…3565bc78`) with the **Genesis Envelope** drop opened by
-`createDrop` at block **2,419,536** (tx `1a34b5cd…fbaabba3`), both on 2026-09-05 and
-both verifiable on the Preprod indexer. The reserve is **sealed**: only its commitment
-`8670a36c…648cf8e4` is public, and the amount is disclosed only at reveal. Stock 1;
-closes 2026-09-19 17:35 UTC. The contract holds one drop for its lifetime
-(`createDrop` asserts the slot is unset), so each new drop is a new deployment.
+**2,519,627** (tx `00ff84df…08cdc1e7`) and carrying two drops opened by `createDrop`:
+**`drop-001`** (Genesis Envelope, stock 1) at block 2,519,652 and **`drop-002`**
+(Second Envelope, stock 2) at block 2,519,671, both closing **2026-11-01**.
+
+Each drop's reserve is **sealed** — only its commitment is public, and the amount is
+disclosed at reveal. One contract holds many drops (decisions log §10, 2026-09-12), so
+opening a drop no longer needs a new deployment, and the gallery lists whatever the
+contract holds without a rebuild.
 
 > A note on transaction ids: the house scripts print a `txId` (a 69-character
 > transaction *identifier*) which is **not** the 64-character hash the indexer and
-> explorers key on. The hashes above are the indexer's. An earlier README entry
-> quoted the identifier by mistake.
+> explorers key on. Hashes quoted here are the indexer's.
 
 The superseded addresses, as the chain records them:
 
+- **`3fac6305…` (Preprod, superseded)** — the single-drop contract the app read from
+  2026-09-05. Holds one drop, closing 2026-09-19. Replaced on 2026-09-12 because
+  `createDrop` asserted the slot was unset, so every drop needed its own deployment.
 - **`1e7b6dee…` (Preprod, superseded)** — deployed 2026-08-21 at block 2,202,228
   (tx `87611f96…a301025`) and submitted as the L2/L3 contract address, but it has
   **zero contract calls**: no drop was ever created on it. Replaced by the address
