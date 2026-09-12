@@ -38,7 +38,7 @@ network, Preprod**.
 | **Contract** | `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` |
 | **Deploy** | block 2,419,510 · tx `79061bfb…3565bc78` · 2026-09-05 17:34 UTC |
 | **Drop opened** | block 2,419,536 · tx `1a34b5cd…fbaabba3` · `createDrop` |
-| **Drop** | Genesis Envelope · 25 tDUST sealed reserve · stock 1 · closes 2026-09-19 17:35 UTC |
+| **Drop** | Genesis Envelope · reserve sealed (commitment `8670a36c…648cf8e4`) · stock 1 · closes 2026-09-19 17:35 UTC |
 
 Verify the drop is open, no wallet needed:
 

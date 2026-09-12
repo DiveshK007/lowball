@@ -55,8 +55,9 @@ The 60-second walkthrough:
 The app runs on **Preprod**, and this is the address it reads. Deployed at block
 **2,419,510** (tx `79061bfb…3565bc78`) with the **Genesis Envelope** drop opened by
 `createDrop` at block **2,419,536** (tx `1a34b5cd…fbaabba3`), both on 2026-09-05 and
-both verifiable on the Preprod indexer. Reserve is 25 tDUST, sealed as a commitment;
-stock 1; closes 2026-09-19 17:35 UTC. The contract holds one drop for its lifetime
+both verifiable on the Preprod indexer. The reserve is **sealed**: only its commitment
+`8670a36c…648cf8e4` is public, and the amount is disclosed only at reveal. Stock 1;
+closes 2026-09-19 17:35 UTC. The contract holds one drop for its lifetime
 (`createDrop` asserts the slot is unset), so each new drop is a new deployment.
 
 > A note on transaction ids: the house scripts print a `txId` (a 69-character
