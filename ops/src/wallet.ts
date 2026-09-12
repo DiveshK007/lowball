@@ -618,17 +618,36 @@ export async function deployToNetwork<Ledger, PrivateState>(args: {
  * sync, dust and providers are handled exactly as for a deploy; `invoke`
  * receives the found contract and runs one `callTx.<circuit>(...)`.
  */
-export async function callOnNetwork<PrivateState>(args: {
+export type NetworkCall<PrivateState> = {
+  /** Shown in the log so a multi-call run is readable. */
+  label: string;
+  /** Witnesses this call proves against. Rebinding it re-targets the contract. */
+  privateState: PrivateState;
+  invoke: (contract: any) => Promise<{ public: { txId: any; blockHeight?: any } }>;
+};
+
+export type CallResult = { label: string; txId: string; blockHeight: bigint };
+
+/**
+ * Run several circuit calls in ONE wallet session.
+ *
+ * Each call costs a wallet start plus a full sync otherwise, which is minutes.
+ * Simulating 50 bidders at L5 means 100 calls (a bid and a win each), so the
+ * per-call sync is the difference between a few minutes and most of a day.
+ * `findDeployedContract` is re-run per call because it is what binds the
+ * private state the proof is built against — that is how one wallet submits
+ * for many distinct bidders.
+ */
+export async function callManyOnNetwork<PrivateState>(args: {
   name: string;
   contractAddress: string;
   seedPath: string;
   contractClass: new (witnesses: any) => any;
   witnesses: any;
   privateStateId: string;
-  initialPrivateState: PrivateState;
   zkConfigPath: string;
-  invoke: (contract: any) => Promise<{ public: { txId: any; blockHeight?: any } }>;
-}): Promise<{ txId: string; blockHeight: bigint }> {
+  calls: readonly NetworkCall<PrivateState>[];
+}): Promise<CallResult[]> {
   const { name: network, config } = resolveNetwork();
   setNetworkId(network);
   const seed = readSeed(args.seedPath);
@@ -651,24 +670,53 @@ export async function callOnNetwork<PrivateState>(args: {
       args.zkConfigPath,
     );
 
-    console.log(`Finding deployed contract ${args.contractAddress}...`);
-    const contract = await findDeployedContract(providers, {
-      contractAddress: args.contractAddress,
-      compiledContract: compiled,
-      privateStateId: args.privateStateId,
-      initialPrivateState: args.initialPrivateState,
-    });
-
-    console.log(`Submitting circuit call...`);
-    const result = await args.invoke(contract);
-    const txId = String(result.public.txId);
-    const blockHeight = BigInt(result.public.blockHeight ?? 0);
-    console.log(`  tx:    ${txId}`);
-    console.log(`  block: ${blockHeight}`);
-    return { txId, blockHeight };
+    const results: CallResult[] = [];
+    for (const [i, call] of args.calls.entries()) {
+      console.log(
+        `\n[${i + 1}/${args.calls.length}] ${call.label} — binding witnesses...`,
+      );
+      const contract = await findDeployedContract(providers, {
+        contractAddress: args.contractAddress,
+        compiledContract: compiled,
+        privateStateId: args.privateStateId,
+        initialPrivateState: call.privateState,
+      });
+      const result = await call.invoke(contract);
+      const txId = String(result.public.txId);
+      const blockHeight = BigInt(result.public.blockHeight ?? 0);
+      console.log(`  tx:    ${txId}`);
+      console.log(`  block: ${blockHeight}`);
+      results.push({ label: call.label, txId, blockHeight });
+    }
+    return results;
   } finally {
     await ctx.wallet.stop();
   }
+}
+
+/** Single-call convenience wrapper over {@link callManyOnNetwork}. */
+export async function callOnNetwork<PrivateState>(args: {
+  name: string;
+  contractAddress: string;
+  seedPath: string;
+  contractClass: new (witnesses: any) => any;
+  witnesses: any;
+  privateStateId: string;
+  initialPrivateState: PrivateState;
+  zkConfigPath: string;
+  invoke: (contract: any) => Promise<{ public: { txId: any; blockHeight?: any } }>;
+}): Promise<{ txId: string; blockHeight: bigint }> {
+  const [result] = await callManyOnNetwork({
+    ...args,
+    calls: [
+      {
+        label: "circuit call",
+        privateState: args.initialPrivateState,
+        invoke: args.invoke,
+      },
+    ],
+  });
+  return { txId: result.txId, blockHeight: result.blockHeight };
 }
 
 async function buildProviders(

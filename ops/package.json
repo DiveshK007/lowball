@@ -12,7 +12,8 @@
     "derive-address": "tsx src/derive-address.ts",
     "create-drop": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/create-drop.ts",
     "close-and-reveal": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/close-and-reveal.ts",
-    "sync:contract": "rm -rf managed && mkdir -p managed && cp -R ../contract/src/managed/lowball managed/lowball"
+    "sync:contract": "rm -rf managed && mkdir -p managed && cp -R ../contract/src/managed/lowball managed/lowball",
+    "simulate-bidders": "NODE_OPTIONS=--max-old-space-size=9216 tsx src/simulate-bidders.ts"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",
