@@ -20,9 +20,9 @@ decisions log §10 in `docs/superpowers/specs/2026-07-19-lowball-design.md`.
 | `docs/USAGE.md` | ✅ | [`docs/USAGE.md`](../../USAGE.md) — first-time bidder guide, linked from the README |
 | README + setup docs | ✅ | README → *Prerequisites*, *Setup & Run Locally*, *Run Tests* |
 | CI/CD passing | ✅ | [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml), two jobs |
-| X product profile posting every drop | ❌ | Handle candidates only, in [`docs/traction.md`](../../traction.md) |
-| 15+ commits in the L4 window | ⏳ | In progress; window opened 2026-09-05 |
-| Demo video | ✅ | https://youtu.be/om0mTpbdXiU |
+| X product profile posting every drop | ✅ | **[@lowballdrops](https://x.com/lowballdrops)** — formats and drop calendar in [`docs/traction.md`](../../traction.md) |
+| 15+ commits in the L4 window | ✅ | **50 commits** since the window opened 2026-09-05 |
+| Demo video | ⚠️ | [Existing video](https://youtu.be/om0mTpbdXiU) is **stale** — filmed against the Preview single-drop build. Re-shoot needed against the current Preprod MVP; shot list in [`docs/demo-video-script.md`](../../demo-video-script.md) |
 | Live Preprod demo link | ✅ | https://lowball-orpin.vercel.app — deployed bundle verified against the Preprod indexer |
 
 ## Preview → Preprod consolidation — done 2026-09-05
@@ -55,5 +55,7 @@ Preprod indexer, 0 of the Preview indexer. See decisions log §10, entries dated
 
 ## Still outstanding for L4
 
-- **X product profile** — not created; handle candidates only, in `docs/traction.md`.
-- **Commit count** — the 15+ in-window commits are accumulating from 2026-09-05.
+- **Demo video re-shoot.** The linked video predates multi-drop, the bid accumulator and
+  stock enforcement — it shows a single-drop Preview build. Everything it demonstrates is
+  still true, but it no longer shows what the MVP actually is. Shot list ready at
+  [`docs/demo-video-script.md`](../../demo-video-script.md); this is the one L4 item left.

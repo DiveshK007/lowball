@@ -19,7 +19,8 @@ The only things ever made public are the things that keep the house honest: the 
 | **App** | **https://lowball-orpin.vercel.app** |
 | **Contract (Preprod)** | [`f81e44ea…d9ec66dc`](https://lowball-orpin.vercel.app/drop/drop-001) — **two drops open now** (stock 50 and 25), closing 2026-12-31 |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
-| **Demo video** | [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — wallet connect, sealed bid, verdict, tests, CI |
+| **X** | [@lowballdrops](https://x.com/lowballdrops) — every drop posted, with its commitment hash |
+| **Demo video** | ⚠️ [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — **out of date**: filmed against the Preview single-drop build. It shows connect, sealed bid, verdict, tests and CI, but not multi-drop, stock or the sold-out path. Re-shoot pending ([shot list](docs/demo-video-script.md)) |
 
 > **Current chain state.** One contract holds every drop; every bidder on a drop can
 > open their own envelope, and the first `stock` bidders to claim take the units.

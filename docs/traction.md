@@ -10,7 +10,7 @@ never leaks a bid.
 
 ## Account setup (one-time, human)
 
-- Handle: `@lowballdrops` (fallback: `@lowball_xyz`, `@playlowball`)
+- Handle: **[@lowballdrops](https://x.com/lowballdrops)** — registered and live.
 - Bio: `Name your price on a mystery drop. Reserve sealed onchain before you bid — your number stays sealed forever. Built on @MidnightNtwrk.`
 - Link: https://lowball-orpin.vercel.app
 - Pinned: the drop-01 receipts thread (proves fairness before asking for a bid)
