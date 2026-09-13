@@ -1,4 +1,131 @@
-# Demo video shot lists (L2 and L3)
+# Demo video shot lists
+
+## L4 — the current MVP (target: 2–3 min)
+
+**Why re-shoot.** The existing video (<https://youtu.be/om0mTpbdXiU>) is still honest
+about what it shows, but it films the **Preview single-drop build**. Since then the
+product changed in three ways that are the whole point of L4/L5: one contract now holds
+**many drops**, **every bidder** can open their own envelope (not just the most recent),
+and **stock is enforced** so a drop can sell out. None of that is on camera anywhere.
+
+### What to film against
+
+| | |
+|---|---|
+| App | <https://lowball-orpin.vercel.app> |
+| Network | **Preprod** |
+| Contract | `f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc` |
+| Open drops | `drop-001` Genesis Envelope (stock 50) · `drop-002` Second Envelope (stock 25) |
+| Closed proof drop | `drop-soldout` — stock 2, 3 bids, **2 winners** |
+
+### Before you hit record
+
+- [ ] Lace on **Preprod**, with tDUST actually accrued — register tNIGHT for DUST
+      generation and wait. See [`USAGE.md`](USAGE.md); this is the step that wastes
+      afternoons.
+- [ ] Proof server up: `docker start lowball-proof-server` → expect HTTP 200 on `:6300`
+- [ ] Browser zoom ~110%, other tabs closed, notifications off
+- [ ] A terminal ready for the test/CI shots
+- [ ] **Film the gallery shot before creating the demo drops below**, if you want it to
+      read as a tidy three. Five drops is fine too — arguably better evidence of
+      multi-drop.
+
+### Set up two throwaway drops for the verdict and sold-out shots
+
+`drop-001` and `drop-002` stay open until 2026-12-31, so you cannot film a reveal on
+them. Make two disposable drops instead. From `ops/`, with
+`C=f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`:
+
+```bash
+# A drop you will win on camera.
+MIDNIGHT_NETWORK=preprod CONTRACT_ADDRESS=$C DROP_ID=drop-demo-win \
+  DROP_RESERVE=5 DROP_STOCK=1 DROP_CLOSE_MINUTES=2880 DROP_META='Demo Envelope' \
+  npm run create-drop
+
+# A drop that will sell out from under you on camera.
+MIDNIGHT_NETWORK=preprod CONTRACT_ADDRESS=$C DROP_ID=drop-demo-soldout \
+  DROP_RESERVE=5 DROP_STOCK=1 DROP_CLOSE_MINUTES=2880 DROP_META='Last One' \
+  npm run create-drop
+```
+
+Then, **between takes**:
+
+1. In the browser, place a sealed bid on **both** demo drops (shots 3–5 below).
+2. Add a rival bidder to the sold-out drop and let them take the only unit:
+   ```bash
+   MIDNIGHT_NETWORK=preprod CONTRACT_ADDRESS=$C DROP_ID=drop-demo-soldout BIDDERS=1 \
+     npm run simulate-bidders -- bid
+   MIDNIGHT_NETWORK=preprod CONTRACT_ADDRESS=$C DROP_ID=drop-demo-soldout \
+     npm run close-and-reveal
+   MIDNIGHT_NETWORK=preprod CONTRACT_ADDRESS=$C DROP_ID=drop-demo-soldout \
+     npm run simulate-bidders -- open      # rival claims the single unit
+   ```
+3. Reveal the win drop so your own envelope can be opened:
+   ```bash
+   MIDNIGHT_NETWORK=preprod CONTRACT_ADDRESS=$C DROP_ID=drop-demo-win \
+     npm run close-and-reveal
+   ```
+
+Run wallet commands **one at a time** — overlapping sessions produce
+`key (segment_id) collision during intents merge`.
+
+### The shots
+
+| # | Shot | What must be visible | Why it earns its place |
+|---|---|---|---|
+| 1 | **Gallery** | Several drops on one page, network pill reading **PREPROD**, each tile showing its own stock and bid count | One contract, many drops — the L5/L6 unlock |
+| 2 | **Connect Lace** | The Lace popup, then the connected address in the header | Wallet connect on Preprod |
+| 3 | Open **drop-demo-win**, type an amount | The number in the field | Say aloud: this number is never published |
+| 4 | Click **Seal this bid** | The **"Sealing — proof, signature, block"** state. Do not cut the wait — that is the proof being built on your machine | The ZK work is the product |
+| 5 | Approve in Lace → sealed | The sealed state and tx id | A circuit call landed |
+| 6 | **Side-by-side privacy panel** | Left: your amount. Right: what the ledger shows — **no number on the right** | The single most important frame in the video |
+| 7 | Reveal lands → **Open your envelope** | The revealed reserve appearing, then the **win** verdict | Reveal-day verdict, end to end |
+| 8 | Switch to **drop-demo-soldout** → **Open your envelope** | **"This drop sold out."** and the hint that your bid cleared but the last unit went first | Stock enforcement, and that a sold-out bidder is told something different from a losing one |
+| 9 | **Receipts** `/receipts/drop-soldout` | The three public facts in chain order; paste that drop's salt into the verify box and show the **hashes match** | Fairness is recomputed in the viewer's browser, not asserted |
+| 10 | Terminal | `npm test --prefix contract` → **27 passed**; `npm test --prefix web` → **23 passed** | |
+| 11 | GitHub Actions | Both jobs green | |
+
+Lines worth saying out loud:
+
+- Over shot 6: *"The amount is a Compact witness. It never touches the ledger — not for
+  other bidders, not for a block explorer, not for us."*
+- Over shot 8: *"Their bid cleared the reserve. They still didn't get it, because
+  someone claimed the last one first — and the contract enforced that, not our server."*
+
+### Two things you must not film
+
+> ⚠️ **Never show the salt of an OPEN drop.** That discloses its hidden reserve before
+> reveal and breaks the fairness claim outright. `drop-001` and `drop-002` are open
+> until 2026-12-31 — their salts stay off camera, and so do their preimage files in
+> `ops/vault/`.
+>
+> For shot 9 use **`drop-soldout`**, which is revealed, so its reserve is already public
+> and its salt is safe to show. It lives in
+> `ops/vault/drop-f81e44eaf0ac-drop-soldout.json` (`saltHex`).
+
+> ⚠️ **Keep `ops/vault/` off screen** generally — it also holds the house seed and
+> bidder secrets.
+
+### After recording
+
+1. Upload unlisted, then **check the link in an incognito window** before submitting.
+2. Update the **Demo video** rows in [`README.md`](../README.md) and
+   [`docs/submissions/L4/00-checklist.md`](submissions/L4/00-checklist.md), both of
+   which currently carry a ⚠️ stale-video flag.
+
+### If the seal fails on camera
+
+Almost always DUST. The app pre-checks and says *"no DUST to pay the network fee yet"*
+before the slow proof rather than after it. Register tNIGHT for DUST generation in Lace,
+wait, retry — the bid is journalled locally before submission, so nothing is lost.
+
+---
+
+## Historical — L2 and L3 shot lists (Preview build)
+
+> These produced <https://youtu.be/om0mTpbdXiU>. Kept because they describe the
+> footage L2 and L3 were judged on. **Superseded for L4 by the list above** — they
+> film the Preview single-drop build, which no longer reflects the product.
 
 Two videos are required. They share most footage, so **record one long take, then
 cut it twice**. Film against the live Preview drop while it is open.
