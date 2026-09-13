@@ -134,7 +134,7 @@ cut it twice**. Film against the live Preview drop while it is open.
 - Drop: `/drop/drop-001` · Receipts: `/receipts/drop-001`
 - Contract: `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408`
 
-## Before you hit record
+### Before you hit record
 
 - [ ] Lace on **Preview**, wallet has tDUST accrued (register tNIGHT for DUST
       generation and let it accrue — otherwise the seal fails at submit)
@@ -144,7 +144,7 @@ cut it twice**. Film against the live Preview drop while it is open.
       narration; captions in the edit are fine too
 - [ ] Have `README.md` and a terminal ready in other windows for the L3 shots
 
-## L2 — Waxing Crescent (under 2 min)
+### L2 — Waxing Crescent (under 2 min)
 
 Checklist wording: *wallet connect + a successful circuit call.*
 
@@ -163,7 +163,7 @@ Checklist wording: *wallet connect + a successful circuit call.*
 Say this line somewhere: *"The bid amount is a Compact witness — it never
 touches the ledger. The explorer shows that a bid happened, not what it was."*
 
-## L3 — First Quarter (1 min, tighter)
+### L3 — First Quarter (1 min, tighter)
 
 Checklist wording: *full functionality + test output + green CI.*
 
@@ -183,12 +183,12 @@ salt is public and safe to show on camera.
 > ⚠️ **Never show the salt of an OPEN drop on camera** — that would disclose the
 > hidden reserve before reveal and break the fairness claim.
 
-## After recording
+### After recording
 
 1. Upload (YouTube unlisted, or Drive with link sharing)
 2. Send me the links and I'll add them to the README and the submission docs
 
-## If the seal fails on camera
+### If the seal fails on camera
 
 Almost always DUST: the app now shows *"no DUST to pay the network fee yet"*
 before the slow proof rather than failing after it. Register tNIGHT for DUST
