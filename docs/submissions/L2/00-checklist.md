@@ -5,7 +5,14 @@
 | Lace wallet connect **and** disconnect | ✅ | demo video; `web/src/features/wallet/ConnectButton.tsx` |
 | Circuit called successfully from the frontend | ✅ | real Lace-signed `placeBid`, tx `9263db6b…cb3f3` on Preview |
 | Observable privacy behavior (proven without being shown) | ✅ | side-by-side panel: bid amount on the left, ledger view on the right with no amount; won at 30 tDUST with the amount published nowhere |
-| Contract deployed to Preprod with a verifiable address | ✅ | `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272`, block 2,202,228 — verified on the Preprod indexer as `ContractDeploy` (`docs/submissions/L1/03-preprod-deploy.md`) |
+| Contract deployed to Preprod with a verifiable address | ✅ | **`f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`**, block 2,520,844 — the live contract, with two drops open. Verify on the Preprod indexer. |
+
+> **Note on the address.** This level was originally submitted citing
+> `1e7b6dee…6263272`, which was a **bare deploy with no drop on it** — nothing to
+> look at, which is the likely cause of the "invalid CA" rejection. The address
+> above is the live contract the app reads today; it holds open drops and closed
+> evidence drops. Superseded addresses are listed in the README under
+> *Superseded addresses*.
 | Public GitHub repo with README | ✅ | https://github.com/DiveshK007/lowball |
 | Live demo link | ✅ | https://lowball-orpin.vercel.app |
 | Demo video: wallet connect + successful circuit call | ✅ | https://youtu.be/om0mTpbdXiU |

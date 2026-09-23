@@ -53,58 +53,49 @@ The 60-second walkthrough:
 
 ## Contract Address
 
-| Network | Address | State |
+**Live contract — this is the only address a reviewer needs:**
+
+```
+f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc
+```
+
+Preprod, deployed at block **2,520,844**. Holds three drops: **`drop-001`**
+(Genesis Envelope, stock 50) and **`drop-002`** (Second Envelope, stock 25), both
+open until **2026-12-31**, plus **`drop-soldout`**, closed, which is the on-chain
+evidence for stock enforcement — stock 2, three sealed bids, two winners, the
+third bidder rejected by the contract.
+
+Verify it in one call, no wallet:
+
+```bash
+curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
+  -H 'content-type: application/json' \
+  -d '{"query":"{contractAction(address:\"f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc\"){__typename ... on ContractCall{entryPoint}}}"}'
+```
+
+Each drop's reserve is **sealed** — only its commitment is public, and the amount
+is disclosed at reveal.
+
+<details>
+<summary><strong>Superseded addresses</strong> — history only, do not use</summary>
+
+Every one of these is a real deploy that an earlier level was judged on. They are
+kept for auditability and are **not** the live contract.
+
+| Address | Network | Why it was replaced |
 |---|---|---|
-| **Preprod — live** | **`f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`** | **2 drops open** to 2026-12-31 · sold-out proof drop |
-| Preprod (superseded, accumulator) | `72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1` | every bidder could win, but stock was unenforced |
-| Preprod (superseded, multi-drop) | `edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7` | many drops, but only the latest bidder could win |
-| Preprod (superseded, single-drop) | `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` | one drop, closes 2026-09-19 |
-| Preprod (superseded) | `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272` | bare deploy, no drop |
-| Preview (full loop) | `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` | closed, win claimed |
-| Preview (L1 record) | `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` | reserve revealed only |
-
-The app runs on **Preprod**, and this is the address it reads. Deployed at block
-**2,520,844**, carrying three drops:
-
-| Drop | Stock | State |
-|---|---|---|
-| `drop-001` Genesis Envelope | 50 | open to 2026-12-31 |
-| `drop-002` Second Envelope | 25 | open to 2026-12-31 |
-| `drop-soldout` Sold-Out Proof | 2 | closed — 3 bids, **2 winners** |
-
-Two things are proved on chain rather than asserted. **Every bidder can win**: bids
-accumulate into a per-drop set, so any bidder can prove their own commitment is in it —
-before this, the contract kept a single bid slot and each new bid overwrote the last, so
-only the most recent bidder could win at all. **Stock is enforced by claim order**:
-`drop-soldout` carries stock 2 against three clearing bids and recorded exactly two
-winners, with the third bidder rejected by an in-circuit `drop sold out` assert.
-
-Bid-order priority was the original rule (architecture §3.3) and turned out to be
-unimplementable without disclosing bid amounts — see decisions log §10, 2026-09-12.
-
-Each drop's reserve is **sealed** — only its commitment is public, and the amount is
-disclosed at reveal.
+| `72dfe0295bb744874f6b5a7ed961f2b5dd4b883666f7dd87d4fd2260f169a4b1` | Preprod | Every bidder could win, but stock was unenforced |
+| `edae325517131cd6dbfdf953cf87cf3ef337191b1ef50f12a9f1a57dab468dc7` | Preprod | Many drops, but only the most recent bidder could win |
+| `3fac6305e4d70a1e8e16c9ea2c480d1456e05c043b9150e5b97f46cd2120b446` | Preprod | One drop per deployment |
+| `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272` | Preprod | Bare deploy — no drop was ever created on it |
+| `ae971dc989e4f3a8b6c28f9e3145c8e853b6e51f09bb423610f678e343c48408` | Preview | Pre-Preprod; carried the first full loop, win claimed |
+| `e5f6d4704f3e47b3620ccfb01cc7e35aa491f127888a7a63c9f7db63f7c4fc11` | Preview | The original L1 deploy; reserve revealed, no win claimed |
 
 > A note on transaction ids: the house scripts print a `txId` (a 69-character
 > transaction *identifier*) which is **not** the 64-character hash the indexer and
-> explorers key on. Hashes quoted here are the indexer's.
+> explorers key on. Hashes quoted in this README are the indexer's.
 
-The superseded addresses, as the chain records them:
-
-- **`3fac6305…` (Preprod, superseded)** — the single-drop contract the app read from
-  2026-09-05. Holds one drop, closing 2026-09-19. Replaced on 2026-09-12 because
-  `createDrop` asserted the slot was unset, so every drop needed its own deployment.
-- **`1e7b6dee…` (Preprod, superseded)** — deployed 2026-08-21 at block 2,202,228
-  (tx `87611f96…a301025`) and submitted as the L2/L3 contract address, but it has
-  **zero contract calls**: no drop was ever created on it. Replaced by the address
-  above on 2026-09-05.
-- **`ae971dc9…` (Preview, full loop)** — the original **Genesis Envelope** drop.
-  Reached `checkWin` at block 525,755 on 2026-08-22 (tx `1860cb96…de14df`): reserve
-  sealed, bid placed, reserve revealed, **win claimed at 30 over a 25 tDUST reserve**.
-  The contract that carried the loop end to end.
-- **`e5f6d470…` (Preview, L1 record)** — the original L1 deploy. Its furthest call is
-  `revealReserve` at block 224,316 on 2026-08-01 (tx `876b0662…d928efe`): reserve
-  revealed, **no win claimed**. Kept because it is the evidence L1 was judged on.
+</details>
 
 L1 first deployed to **Preview** (deploy tx `004a60c4…b64d29`, block 215085), because Preprod's ~1.45M-event dust genesis replay is a multi-hour, memory-hungry job ([`docs/spikes/preprod-sync-memory.md`](docs/spikes/preprod-sync-memory.md)). Preprod was reached in the end **without a cloud VM**, by checkpointing the wallet state every 5 minutes and migrating the resulting snapshot between machines — see [`docs/preprod-deploy-cloud.md`](docs/preprod-deploy-cloud.md) for both routes. That cache (`ops/vault/wallet-cache-preprod.json`, git-ignored) is retained, so later Preprod deploys resume from the tip instead of replaying genesis. Full evidence: [`docs/submissions/L1/02-deploy.md`](docs/submissions/L1/02-deploy.md), [`03-preprod-deploy.md`](docs/submissions/L1/03-preprod-deploy.md).
 
@@ -230,8 +221,8 @@ cd ops && npm install && npm run build && node dist/index.js --help
 ## Run Tests
 
 ```
-npm test --prefix contract   # 6 contract tests (circuits, state, reveal tamper)
-npm test --prefix web        # 15 web tests (formatting + commitment hashes)
+npm test --prefix contract   # 27 tests — circuits, multi-drop, accumulator, stock
+npm test --prefix web        # 29 tests — formatting, commitment hashes, drop ids
 ```
 
 The web suite includes `web/src/lib/midnight/hashes.test.ts`, which asserts the

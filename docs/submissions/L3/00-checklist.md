@@ -3,7 +3,7 @@
 | Requirement | Status | Evidence |
 |---|---|---|
 | Fully functional dApp using Midnight's privacy model | ✅ | live at https://lowball-orpin.vercel.app; full loop run on chain (see L2 checklist) |
-| Minimum 3 tests passing | ✅ | **24 passing** — 6 contract + 18 web (`02-test-output.png`) |
+| Minimum 3 tests passing | ✅ | **56 passing** — 27 contract + 29 web |
 | CI/CD pipeline running (workflow + passing runs) | ✅ | [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml); two jobs green on every push |
 | Idea from the provided list | ✅ | **Sealed-Bid Auction** — private bids, verifiable winner |
 | Product proposal submitted for approval | ⏳ | drafted in [`PROPOSAL.md`](../../../PROPOSAL.md) — submit on Rise In |
@@ -17,10 +17,15 @@
 
 ## Contract address (mandatory)
 
-**Preprod:** `1e7b6deedf3a04adb877416b845b8039c3cc5caf7b214cdaa532a8fce6263272`
+**Preprod:** `f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`
 Deploy tx `87611f96…a301025` · block 2,202,228 · verified on the Preprod indexer as `ContractDeploy`.
 (The tx hash previously recorded here, `0018b530…a6f632`, does not match the chain; the deploy
 transaction's hash at block 2,202,228 is `87611f96983aa39029dc4778d6b2688726d41d0b4c35e784b5b96df83a301025`.)
+
+> Originally submitted as `1e7b6dee…6263272`, which was a **bare deploy with no
+> drop created on it** — the likely cause of the "invalid CA" rejection. The
+> address above is the live contract: three drops, two open, one closed as
+> evidence. Superseded addresses are in the README under *Superseded addresses*.
 
 ## Beyond the minimum
 
