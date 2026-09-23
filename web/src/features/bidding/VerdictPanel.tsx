@@ -1,11 +1,11 @@
 // Post-seal states: waiting for the reveal, opening the envelope, and the two
 // verdicts. A loss shows nothing measurable — that is the product promise.
 
-import { explorerTxUrl } from '../../config'
 import { formatDust, shortHex } from '../../lib/format'
 import type { DropState } from '../../lib/midnight'
 import { backupFileFor } from '../../lib/persistence/bids'
 import type { StoredBid } from '../../lib/persistence/bids'
+import { BidReceipt } from './BidReceipt'
 import { Countdown } from '../drops/Countdown'
 import type { BidFlow } from './useBidFlow'
 
@@ -89,9 +89,7 @@ export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
           stole Drop #{String(dropNumber).padStart(3, '0')} for{' '}
           {formatDust(BigInt(bid.amount))} tDUST 🤫
         </p>
-        <a className="mono" href={explorerTxUrl(bid.txId)} target="_blank" rel="noreferrer">
-          {shortHex(bid.txId, 10)} →
-        </a>
+        <BidReceipt txId={bid.txId} label="Your winning transaction" />
       </div>
     )
   }
@@ -137,6 +135,8 @@ export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
       )}
 
       <div className="mono">commitment {shortHex(bid.commitmentHex, 12)}</div>
+
+      <BidReceipt txId={bid.txId} label="Your sealed bid transaction" />
 
       {revealed ? (
         <button
