@@ -292,6 +292,10 @@ main {
     transform var(--dur-slow) var(--ease);
 }
 
+/* Must match the specificity of `[data-reveal-armed] .reveal` (0,2,0) or the
+   hidden state wins and everything stays invisible — which is exactly what
+   happened the first time this was scoped. */
+[data-reveal-armed] .reveal--in,
 .reveal--in {
   opacity: 1;
   transform: none;
