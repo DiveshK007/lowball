@@ -13,8 +13,10 @@ import type {
   FinalizedTransaction,
   TransactionId,
 } from '@midnight-ntwrk/midnight-js-protocol/ledger'
+import { createProofProvider } from '@midnight-ntwrk/midnight-js-types'
 import type {
   MidnightProviders,
+  ProofProvider,
   PublicDataProvider,
   UnboundTransaction,
 } from '@midnight-ntwrk/midnight-js-types'
@@ -65,10 +67,66 @@ export const probeProofServer = async (uri: string): Promise<boolean> => {
   }
 }
 
+/** Where the ZK proof for a bid actually gets built. */
+export type ProvingMode = 'wallet' | 'proof-server'
+
 export type ProviderBundle = {
   readonly providers: LowballProviders
-  readonly proofServerUri: string
+  readonly provingMode: ProvingMode
+  /** Only set when falling back to a proof server. */
+  readonly proofServerUri: string | null
   readonly coinPublicKey: string
+}
+
+/**
+ * Resolve where proofs come from.
+ *
+ * Connector v4 deprecates `Configuration.proverServerUri` in favour of
+ * `getProvingProvider`, which lets a wallet prove for us — 1AM does this in
+ * browser WASM, so its users need no proof server at all. Lace does not
+ * implement it, so this is a feature detection, not a version check: we call it
+ * and fall back if it is missing or refuses.
+ */
+const resolveProofProvider = async (
+  api: ConnectedAPI,
+  zkConfig: FetchZkConfigProvider<LowballCircuitId>,
+  walletProverUri: string | undefined,
+): Promise<{
+  proofProvider: ProofProvider
+  provingMode: ProvingMode
+  proofServerUri: string | null
+}> => {
+  if (typeof api.getProvingProvider === 'function') {
+    try {
+      const provingProvider = await api.getProvingProvider(
+        zkConfig.asKeyMaterialProvider(),
+      )
+      return {
+        proofProvider: createProofProvider(provingProvider),
+        provingMode: 'wallet',
+        proofServerUri: null,
+      }
+    } catch {
+      // Declared but unusable — fall through to the proof server rather than
+      // failing the bid outright.
+    }
+  }
+
+  const proofServerUri = walletProverUri ?? config.proofServerUri
+  if (!(await probeProofServer(proofServerUri))) {
+    throw new LowballError(
+      'proof-server-unreachable',
+      `No proof server at ${proofServerUri}.`,
+      {
+        hint: 'Start it with `docker start lowball-proof-server` (port 6300), or connect a wallet that proves in-browser, such as 1AM.',
+      },
+    )
+  }
+  return {
+    proofProvider: httpClientProofProvider(proofServerUri, zkConfig),
+    provingMode: 'proof-server',
+    proofServerUri,
+  }
 }
 
 /** Assemble every provider a circuit call needs from a connected wallet. */
@@ -80,18 +138,12 @@ export const buildProviders = async (
     api.getShieldedAddresses(),
   ])
 
-  const proofServerUri = walletConfig.proverServerUri ?? config.proofServerUri
-  if (!(await probeProofServer(proofServerUri))) {
-    throw new LowballError(
-      'proof-server-unreachable',
-      `No proof server at ${proofServerUri}.`,
-      {
-        hint: 'Start it with `docker start lowball-proof-server` (port 6300), then retry.',
-      },
-    )
-  }
-
   const zkConfig = zkConfigProvider()
+  const { proofProvider, provingMode, proofServerUri } = await resolveProofProvider(
+    api,
+    zkConfig,
+    walletConfig.proverServerUri,
+  )
   const coinPublicKey = addresses.shieldedCoinPublicKey
 
   const providers: LowballProviders = {
@@ -105,12 +157,13 @@ export const buildProviders = async (
       browserWebSocket,
     ),
     zkConfigProvider: zkConfig,
-    proofProvider: httpClientProofProvider(proofServerUri, zkConfig),
+    proofProvider,
     walletProvider: {
       getCoinPublicKey: () => coinPublicKey,
       getEncryptionPublicKey: () => addresses.shieldedEncryptionPublicKey,
-      // Lace balances the proven-but-unbound transaction: it pays the DUST
-      // fee and adds its own Zswap proofs, then hands it back sealed.
+      // The wallet balances the proven-but-unbound transaction: it pays the
+      // DUST fee from the user's own balance and adds its own Zswap proofs,
+      // then hands it back sealed. No wallet we support sponsors that fee.
       balanceTx: async (tx: UnboundTransaction): Promise<FinalizedTransaction> => {
         const balanced = await api.balanceUnsealedTransaction(toHex(tx.serialize()))
         return Transaction.deserialize(
@@ -129,5 +182,5 @@ export const buildProviders = async (
     },
   }
 
-  return { providers, proofServerUri, coinPublicKey }
+  return { providers, provingMode, proofServerUri, coinPublicKey }
 }

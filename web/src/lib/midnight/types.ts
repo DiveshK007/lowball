@@ -36,11 +36,15 @@ export type DropState = {
 export type DropListing = DropState & { readonly dropId: string }
 
 export type WalletSummary = {
+  /** The `window.midnight` key this wallet injected under. */
+  readonly key: string
   readonly name: string
   readonly icon: string
   readonly apiVersion: string
   readonly networkId: string
   readonly shieldedAddress: string
+  /** True when the wallet proves in-browser, so no proof server is needed. */
+  readonly provesInBrowser: boolean
 }
 
 /** A sealed bid, as it exists on this device. The amount never leaves it. */
