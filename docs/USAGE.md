@@ -16,27 +16,53 @@ properly below; please read it before you start, it will save you an afternoon.
 
 ## Part 1 — Getting ready
 
+### Pick a wallet first — this decides how much setup you face
+
+You need a Midnight wallet. Two work with LOWBALL, and they differ in one way
+that matters a lot:
+
+| | **1AM** *(recommended)* | **Lace** |
+|---|---|---|
+| Builds the zero-knowledge proof | **In your browser** | On a **proof server you run yourself** |
+| Extra software to install | None | Docker, plus a running proof server |
+| Test tokens needed | Yes — see step 3 | Yes — see step 3 |
+
+**Both wallets need you to set up tDUST.** Neither sponsors your transaction
+fees. The difference is the proof server: with 1AM there is nothing else to
+install, and for most people that is the whole reason to pick it.
+
 ### The short version
 
-1. Install the Lace wallet and switch it to the **Preprod** network.
+1. Install **[1AM](https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp)** and switch it to the **Preprod** network.
 2. Get free test tokens (**tNIGHT**) from the faucet.
-3. In Lace, press **Generate tDUST**, then wait for the tank to start filling.
+3. Turn that tNIGHT into **tDUST**, which is what fees are actually paid in.
 
 You only need to do this once.
 
-### Step 1 · Install Lace and switch to Preprod
+### Step 1 · Install a wallet and switch to Preprod
 
-Install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)
-from the Chrome Web Store and create a Midnight wallet.
+Install **[1AM](https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp)**
+(Chrome or Firefox) and create a Midnight wallet. It is built for Midnight and
+proves in the browser, so there is no proof server to run.
 
-Then **switch the network to Preprod.** This matters more than it sounds. Midnight
-has several separate test networks, and Preview and Preprod are *completely different
-chains* — different balances, different faucets, different contracts. A wallet set to
-Preview will look funded and still be useless here. LOWBALL runs on **Preprod**.
+> Prefer **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)**?
+> It works, but it cannot build the proof itself — you must run a local proof
+> server on port 6300 before you can bid:
+> ```bash
+> docker run -d --name lowball-proof-server -p 6300:6300 \
+>   midnightntwrk/proof-server:latest midnight-proof-server -v
+> ```
+> If that sounds like a lot, use 1AM.
+
+Then **switch the network to Preprod.** This matters more than it sounds.
+Midnight has several separate test networks, and Preview and Preprod are
+*completely different chains* — different balances, different faucets, different
+contracts. A wallet set to Preview will look funded and still be useless here.
+LOWBALL runs on **Preprod**.
 
 ### Step 2 · Get free test tokens from the faucet
 
-In Lace, copy your **unshielded** address. It starts with `mn_addr_preprod1…`.
+In your wallet, copy your **unshielded** address. It starts with `mn_addr_preprod1…`.
 
 > Lace shows more than one kind of address. The faucet only accepts the *unshielded*
 > one. If you paste a shielded address or a DUST address, it will be rejected.
@@ -66,7 +92,7 @@ the panel does nothing until you plug it in.
 So having 1,000 tNIGHT sitting in your wallet buys you exactly nothing until you do
 this step.
 
-**In Lace, open your Midnight wallet and press "Generate tDUST".** Your tDUST address
+**In your wallet, find the option to generate tDUST** — in Lace the button is literally **Generate tDUST**; 1AM presents the same registration step. Your tDUST address
 fills in automatically; review and confirm the transaction. (The official docs call
 this *registering NIGHT for DUST generation*, or *designation*. Lace calls the button
 Generate tDUST. Same thing.)
@@ -93,9 +119,14 @@ You are not burning through a balance.
 
 ### Do I need to install anything else?
 
-No. You may see mentions of a "proof server" in the developer docs — the LOWBALL web
-app uses the prover built into Lace, so you do not need Docker or any local software.
-That requirement is only for people running the house-side tools.
+**With 1AM, no.** It compiles Midnight's prover into your browser, so there is no
+proof server and no Docker.
+
+**With Lace, yes** — a local proof server, as shown in step 1. Lace does not
+build proofs itself, and a bid cannot be sealed without one.
+
+If you connect Lace without a proof server running, LOWBALL tells you so before
+it starts the slow part, rather than failing at the end.
 
 ---
 
