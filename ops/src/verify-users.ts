@@ -88,7 +88,10 @@ const findColumn = (headers: string[], hints: string[]): number =>
 
 const toRows = (csv: string): Row[] => {
   const table = parseCsv(csv)
-  if (table.length < 2) throw new Error('CSV needs a header row and at least one data row.')
+  // A header-only export is the normal day-one state, not an error: it should
+  // report zero verified users, so USERS.md can be generated before anyone has
+  // submitted anything.
+  if (table.length === 0) throw new Error('CSV is empty — expected at least a header row.')
   const headers = table[0]
   const iAddr = findColumn(headers, COLUMN_HINTS.address)
   const iTx = findColumn(headers, COLUMN_HINTS.tx)
