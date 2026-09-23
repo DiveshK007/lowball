@@ -2,12 +2,10 @@
 
 **Target: 70 real users bidding on Preprod, with a documented feedback loop.**
 
-> **Roadmap discrepancy — resolve before submitting.** Spec §7 in
-> `docs/superpowers/specs/2026-07-19-lowball-design.md` records L6 as *"Mainnet
-> deploy; brand assets; launch-week drops; **20 real users**"*, with the 50-wallet
-> target at L5. This checklist is built to **70 Preprod users**, as instructed.
-> Those cannot both be current. Confirm against the live L6 page and update spec
-> §7 deliberately (CLAUDE.md: don't let code and spec drift silently).
+> **Resolved 2026-09-23.** Spec §7 previously recorded L6 as "mainnet deploy +
+> 20 real users", which was the program page as it read in July. The program
+> changed L6 to **70 real users on Preprod, no mainnet**; §7 now matches, and the
+> change is logged in decisions log §10.
 
 ## Requirements
 
@@ -21,7 +19,7 @@
 | 30+ commits in the L6 window | ⏳ | Window opens when L5 closes |
 | Live contract with open drops | ✅ | `f81e44ea…d9ec66dc` — `drop-001` (stock 50), `drop-002` (stock 25), open to 2026-12-31 |
 | Brand assets (logo, flex-card, site polish) | ⏳ | Site polish in progress; logo and flex-card template outstanding |
-| Mainnet deploy | ❌ | Not started — see the discrepancy note above |
+| ~~Mainnet deploy~~ | n/a | **Out of scope** — the program removed it from L6 (2026-09-23) |
 
 ## The rules other builders were rejected for
 
