@@ -1198,3 +1198,44 @@ a.mono {
   .reveal { opacity: 1; transform: none; clip-path: none; }
   .reveal-clock::after { display: none; }
 }
+
+/* --- wallet picker ------------------------------------------------------ */
+/* Shown only when more than one compatible wallet is injected. Each option is
+   a real button so the wallet pop-up keeps that click's user activation. */
+.wallet-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.wallet-picker__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.wallet-picker__option img {
+  border-radius: 4px;
+  flex: none;
+}
+
+.wallet-picker__name {
+  font-weight: 600;
+}
+
+.wallet-picker__blurb {
+  color: var(--slate-2);
+  font-size: 0.78rem;
+  max-width: 22ch;
+}
+
+@media (max-width: 640px) {
+  .wallet-picker {
+    flex-direction: column;
+  }
+  .wallet-picker__blurb {
+    max-width: none;
+  }
+}

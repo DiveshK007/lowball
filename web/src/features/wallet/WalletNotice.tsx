@@ -22,7 +22,7 @@ export const WalletNotice = () => {
           Install
         </a>
       ) : (
-        <button type="button" className="btn btn--ghost" onClick={connect}>
+        <button type="button" className="btn btn--ghost" onClick={() => connect()}>
           Try again
         </button>
       )

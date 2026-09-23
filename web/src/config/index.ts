@@ -65,6 +65,19 @@ export const config = {
 
   laceInstallUrl:
     'https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk',
+  /**
+   * 1AM proves in-browser, so its users need no proof server. It does NOT
+   * sponsor fees — DUST still comes from the user's own NIGHT (Midnight docs,
+   * "do not assume sponsored fees"; 1AM's own FAQ says the same).
+   */
+  oneAmInstallUrl:
+    'https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp',
+  /**
+   * Where a tester reports their bid for the L5 user count. Empty until set —
+   * the UI hides the link rather than pointing at a dead URL.
+   * Set VITE_FEEDBACK_FORM_URL, or paste it here.
+   */
+  feedbackFormUrl: trimmed(env.VITE_FEEDBACK_FORM_URL) ?? '',
   faucetUrl: FAUCET[networkId],
 } as const
 

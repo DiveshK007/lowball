@@ -15,6 +15,7 @@ export {
   usePlaceBid,
   useVerdict,
 } from './react'
+export type { DetectedWallet } from './connector'
 export type {
   BidPhase,
   DropListResult,

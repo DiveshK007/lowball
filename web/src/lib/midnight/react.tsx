@@ -14,6 +14,7 @@ import {
 import type { ReactNode } from 'react'
 
 import { connectWallet, watchForWallets } from './connector'
+import type { DetectedWallet } from './connector'
 import { LowballError, asWalletError, isLowballError } from './errors'
 import {
   checkVerdict,
@@ -47,7 +48,14 @@ export type WalletContextValue = {
   readonly error: LowballError | null
   /** Present only while connected; passed straight back into the hooks. */
   readonly api: ConnectedAPI | null
-  readonly connect: () => void
+  /** Every compatible wallet currently injected — what the picker renders. */
+  readonly available: readonly DetectedWallet[]
+  /**
+   * Connect. Pass a wallet key from {@link available} to choose; omit it only
+   * when there is exactly one. MUST be called from a click handler — the wallet
+   * pop-up depends on that user activation.
+   */
+  readonly connect: (walletKey?: string) => void
   readonly disconnect: () => void
   readonly dismissError: () => void
 }
@@ -59,11 +67,13 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [wallet, setWallet] = useState<WalletSummary | null>(null)
   const [api, setApi] = useState<ConnectedAPI | null>(null)
   const [error, setError] = useState<LowballError | null>(null)
+  const [available, setAvailable] = useState<readonly DetectedWallet[]>([])
 
   // Extensions inject after load, so "absent" is a conclusion, not a first read.
   useEffect(
     () =>
       watchForWallets((found) => {
+        setAvailable(found.filter((w) => w.compatible))
         setStatus((current) =>
           current === 'detecting'
             ? found.length > 0
@@ -75,12 +85,12 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     [],
   )
 
-  const connect = useCallback(() => {
+  const connect = useCallback((walletKey?: string) => {
     setError(null)
     setStatus('connecting')
     // connectWallet() reaches wallet.connect() synchronously, so the
     // authorization pop-up keeps the click's user activation.
-    connectWallet().then(
+    connectWallet(walletKey).then(
       ({ api: connected, summary }) => {
         setApi(connected)
         setWallet(summary)
@@ -110,11 +120,12 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       wallet,
       api,
       error,
+      available,
       connect,
       disconnect,
       dismissError: () => setError(null),
     }),
-    [status, wallet, api, error, connect, disconnect],
+    [status, wallet, api, error, available, connect, disconnect],
   )
 
   return <WalletContext value={value}>{children}</WalletContext>
