@@ -1,6 +1,8 @@
 // The ritual object. Everything the player feels about privacy hangs on this
 // thing staying shut until reveal day.
 
+import { SealGlyph } from './SealGlyph'
+
 export type EnvelopeState = 'empty' | 'proving' | 'sealed' | 'opening' | 'won' | 'lost'
 
 const CAPTIONS: Record<EnvelopeState, string> = {
@@ -10,15 +12,6 @@ const CAPTIONS: Record<EnvelopeState, string> = {
   opening: 'Opening against the revealed reserve…',
   won: 'Cleared the reserve',
   lost: 'Under the reserve — and it stays that way',
-}
-
-const GLYPHS: Record<EnvelopeState, string> = {
-  empty: '✉️',
-  proving: '🔒',
-  sealed: '🔒',
-  opening: '🔓',
-  won: '🏆',
-  lost: '🤫',
 }
 
 export const Envelope = ({ state }: { state: EnvelopeState }) => {
@@ -35,7 +28,7 @@ export const Envelope = ({ state }: { state: EnvelopeState }) => {
   return (
     <div className={classes} role="img" aria-label={CAPTIONS[state]}>
       <div className="envelope__seal" aria-hidden>
-        {GLYPHS[state]}
+        <SealGlyph state={state} />
       </div>
       <div className="envelope__caption">{CAPTIONS[state]}</div>
     </div>

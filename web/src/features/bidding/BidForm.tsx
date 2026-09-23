@@ -61,7 +61,7 @@ export const BidForm = ({
           ? blockedReason
           : walletConnected
             ? 'Seal this bid'
-            : 'Connect Lace to seal'}
+            : 'Connect a wallet to seal'}
     </button>
 
     {/* Live region is always mounted so screen readers announce the change

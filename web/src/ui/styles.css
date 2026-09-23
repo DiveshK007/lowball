@@ -841,6 +841,7 @@ a.mono {
 
 /* the seal: a machined petrol disc, pressed */
 .envelope__seal {
+  padding: 1.1rem;
   position: relative;
   z-index: 1;
   display: grid;
@@ -857,7 +858,6 @@ a.mono {
     0 0 0 1px rgb(214 240 245 / 14%),         /* frost edge */
     0 18px 50px -12px rgb(0 129 140 / 55%);   /* bloom into the dark */
   color: #eaf5f6;
-  font-size: 1.7rem;
   transition: transform var(--dur) var(--ease-spring), box-shadow var(--dur) var(--ease);
 }
 

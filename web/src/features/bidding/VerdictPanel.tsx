@@ -87,7 +87,7 @@ export const VerdictPanel = ({ bid, state, flow, dropNumber }: Props) => {
         </p>
         <p className="flex-line">
           stole Drop #{String(dropNumber).padStart(3, '0')} for{' '}
-          {formatDust(BigInt(bid.amount))} tDUST 🤫
+          {formatDust(BigInt(bid.amount))} tDUST
         </p>
         <BidReceipt txId={bid.txId} label="Your winning transaction" />
       </div>
