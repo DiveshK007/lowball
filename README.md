@@ -281,7 +281,7 @@ Even the house cannot see bids pre-verdict, so the house cannot selectively acce
 - [Traction engine — X formats + drop calendar](docs/traction.md)
 - [Demo video shot lists (L2 + L3)](docs/demo-video-script.md)
 - [Preprod deploy from a cloud VM](docs/preprod-deploy-cloud.md)
-- [Spikes](docs/spikes/) — escrow feasibility, in-circuit time, Preprod sync memory ceiling
+- [Spikes](docs/spikes/) — escrow feasibility, in-circuit time, Preprod sync memory ceiling, DUST sponsorship
 - [Submissions evidence](docs/submissions/) — per-level screenshots and logs
 
 ## Program roadmap

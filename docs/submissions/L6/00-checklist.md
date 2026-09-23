@@ -75,6 +75,15 @@ in *our* words under "themes"; never rewrite theirs.
 - [ ] README screenshots are real captures of the deployed site
 - [ ] No lorem ipsum, no `TODO`, no stock art anywhere in the submission
 
+## Onboarding friction
+
+70 users in six days is a funnel problem. The proof-server requirement — the step
+that blocked non-technical testers outright — is already gone for anyone using
+1AM. Sponsoring DUST would remove the last few minutes of setup, and is fully
+supported by our SDK, but was assessed and **deferred**: it needs a key-holding
+backend and may weaken the per-user evidence this level is judged on. See
+[`docs/spikes/dust-sponsorship-feasibility.md`](../../spikes/dust-sponsorship-feasibility.md).
+
 ## Before submitting
 
 - [ ] `docs/USERS.md` regenerated from the latest Sheet export
