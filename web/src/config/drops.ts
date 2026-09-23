@@ -52,6 +52,14 @@ export const dropNumberFromId = (id: string): number => {
 }
 
 /**
+ * How a drop is labelled in the UI. Numbered drops read "Drop #001"; evidence
+ * drops carry no number and must fall back to their name — rendering them as
+ * "Drop #000" is the bug this replaces.
+ */
+export const dropLabel = (meta: { number: number; name: string }): string =>
+  meta.number > 0 ? `Drop #${String(meta.number).padStart(3, '0')}` : meta.name
+
+/**
  * Product drops are `drop-<number>`. Anything else on the contract is evidence
  * — the sold-out and accumulator proof drops exist to be verified, not bought,
  * and putting them in the gallery reads as a broken product.

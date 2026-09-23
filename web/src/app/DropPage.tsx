@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 
 import { config, explorerContractUrl } from '../config'
-import { describeStock, dropMetaFor } from '../config/drops'
+import { describeStock, dropLabel, dropMetaFor } from '../config/drops'
 import { formatDust, groupHex, shortHex } from '../lib/format'
 import { useDropState, useWallet } from '../lib/midnight'
 import { Banner } from '../ui/Banner'
@@ -92,7 +92,7 @@ export const DropPage = () => {
       <header className="stack" style={{ gap: '0.6rem' }}>
         <div className="row">
           <span className="eyebrow">
-            Drop #{String(drop.number).padStart(3, '0')}
+            {dropLabel(drop)}
           </span>
           <PhasePill state={state} loading={loading} />
         </div>

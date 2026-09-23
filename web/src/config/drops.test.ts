@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeStock, dropMetaFor, dropNumberFromId } from './drops'
+import { describeStock, dropLabel, dropMetaFor, dropNumberFromId } from './drops'
 
 describe('drop numbering', () => {
   it('reads the number from the slug', () => {
@@ -33,5 +33,18 @@ describe('stock copy', () => {
   it('counts down as units are claimed', () => {
     expect(describeStock(50, 3)).toMatch(/47 of 50/)
     expect(describeStock(2, 2)).toMatch(/All 2 units claimed/)
+  })
+})
+
+describe('drop labels', () => {
+  it('labels numbered drops as Drop #NNN', () => {
+    expect(dropLabel({ number: 1, name: 'Genesis Envelope' })).toEqual('Drop #001')
+    expect(dropLabel({ number: 12, name: 'x' })).toEqual('Drop #012')
+  })
+
+  it('never renders an unnumbered drop as Drop #000', () => {
+    // The receipts back-link read "← Drop #000" for drop-soldout.
+    expect(dropLabel({ number: 0, name: 'Sold-Out Proof' })).toEqual('Sold-Out Proof')
+    expect(dropLabel({ number: 0, name: 'Sold-Out Proof' })).not.toMatch(/#000/)
   })
 })

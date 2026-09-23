@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { describeStock } from '../../config/drops'
+import { describeStock, dropLabel } from '../../config/drops'
 import type { DropMeta } from '../../config/drops'
 import type { DropState } from '../../lib/midnight'
 import { DropMark } from '../../ui/DropMark'
@@ -21,7 +21,7 @@ export const DropCard = ({ drop, state, loading }: Props) => (
     </div>
 
     <div className="row">
-      <span className="eyebrow">Drop #{String(drop.number).padStart(3, '0')}</span>
+      <span className="eyebrow">{dropLabel(drop)}</span>
       <div className="masthead__spacer" />
       <PhasePill state={state} loading={loading} />
     </div>

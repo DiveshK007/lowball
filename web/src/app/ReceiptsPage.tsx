@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { explorerContractUrl, networkLabel, config } from '../config'
-import { dropMetaFor } from '../config/drops'
+import { dropLabel, dropMetaFor } from '../config/drops'
 import { formatDust, groupHex, shortHex } from '../lib/format'
 import { reserveCommitmentHex, useDropState } from '../lib/midnight'
 
@@ -65,7 +65,7 @@ export const ReceiptsPage = () => {
   return (
     <div className="stack" style={{ gap: '1.6rem' }}>
       <Link className="faint" to={`/drop/${drop.id}`} style={{ textDecoration: 'none' }}>
-        ← Drop #{String(drop.number).padStart(3, '0')}
+        ← {dropLabel(drop)}
       </Link>
 
       <header className="stack" style={{ gap: '0.6rem' }}>
