@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 
 import { config, explorerContractUrl } from '../config'
-import { dropMetaFor } from '../config/drops'
+import { describeStock, dropMetaFor } from '../config/drops'
 import { formatDust, groupHex, shortHex } from '../lib/format'
 import { useDropState, useWallet } from '../lib/midnight'
 import { Banner } from '../ui/Banner'
@@ -100,6 +100,13 @@ export const DropPage = () => {
         <p className="muted" style={{ margin: 0, maxWidth: '46rem' }}>
           {drop.blurb}
         </p>
+        {/* Stock copy comes from the chain, never from static metadata — this
+            page once claimed "1-of-1" while the drop carried 50 units. */}
+        {state ? (
+          <p className="faint" style={{ margin: 0 }}>
+            {describeStock(state.stock, state.winnerCount)}
+          </p>
+        ) : null}
       </header>
 
       <div className="drop-layout">

@@ -281,7 +281,10 @@ main {
    clip-path on the hidden state collapses the element's intersection area to
    zero, so IntersectionObserver can never fire and the content is stuck
    invisible forever. Learned that the hard way. */
-.reveal {
+/* Scoped to an armed root on purpose: if the reveal hook never runs — JS
+   error, hydration failure, a bundle that 404s — the content must still be
+   visible. An un-armed page simply shows everything. */
+[data-reveal-armed] .reveal {
   opacity: 0;
   transform: translate3d(0, 24px, 0) scale(0.995);
   transition:
@@ -750,12 +753,14 @@ a.mono {
   place-items: center;
   aspect-ratio: 16 / 9;
   border-radius: var(--r);
-  font-size: 3.2rem;
+  /* The faint blueprint grid the design system uses for card grounds; the
+     emoji-era `font-size` is gone, the frame is not. */
   background:
     linear-gradient(to right, var(--line) 1px, transparent 1px) 0 0 / 22px 22px,
     linear-gradient(to bottom, var(--line) 1px, transparent 1px) 0 0 / 22px 22px,
     var(--ice-2);
   border: 1px solid var(--line);
+  padding: 0.75rem;
 }
 
 .stat-row { display: flex; gap: 1.9rem; flex-wrap: wrap; }
@@ -1195,6 +1200,7 @@ a.mono {
     animation-iteration-count: 1 !important;
   }
 
+  [data-reveal-armed] .reveal,
   .reveal { opacity: 1; transform: none; clip-path: none; }
   .reveal-clock::after { display: none; }
 }
@@ -1238,4 +1244,34 @@ a.mono {
   .wallet-picker__blurb {
     max-width: none;
   }
+}
+
+/* --- drop mark ---------------------------------------------------------- */
+/* Replaces the emoji card art. Sized by the card, not the glyph. */
+.drop-mark {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 96px;
+  border-radius: 10px;
+}
+
+/* --- proofs (evidence drops, not product) -------------------------------- */
+.proofs {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--hairline, rgb(26 32 36 / 0.12));
+  gap: 1.25rem;
+}
+
+.proofs__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 0.85rem;
+}
+
+.proofs__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }

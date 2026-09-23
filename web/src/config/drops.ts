@@ -33,7 +33,7 @@ export const SEEDED_DROPS: readonly DropMeta[] = [
     name: 'Genesis Envelope',
     tagline: 'First sealed drop on Midnight',
     blurb:
-      'A 1-of-1 collectible record minted to the first wallet that clears the hidden reserve. The reserve was committed onchain before this page existed — the house cannot move it now, and cannot see what you bid.',
+      'A collectible record minted to every wallet that clears the hidden reserve, while units last. The reserve was committed onchain before this page existed — the house cannot move it now, and cannot see what you bid.',
     glyph: '✉️',
     accent: '#7c5cff',
     srp: '40 tDUST',
@@ -41,6 +41,34 @@ export const SEEDED_DROPS: readonly DropMeta[] = [
 ]
 
 const ACCENTS = ['#7c5cff', '#00636b', '#b7263a', '#c9a227'] as const
+
+/**
+ * Drop numbering comes from the slug (`drop-002` → 2), not from a hand-written
+ * field — an uncatalogued drop used to render as "Drop #000".
+ */
+export const dropNumberFromId = (id: string): number => {
+  const match = /(\d+)\s*$/.exec(id)
+  return match ? Number(match[1]) : 0
+}
+
+/**
+ * Product drops are `drop-<number>`. Anything else on the contract is evidence
+ * — the sold-out and accumulator proof drops exist to be verified, not bought,
+ * and putting them in the gallery reads as a broken product.
+ */
+export const isProductDrop = (id: string): boolean => /^drop-\d+$/.test(id)
+
+/**
+ * The one line about stock, derived from chain state rather than static copy.
+ * Static copy drifts: this page claimed "1-of-1" while the drop carried 50.
+ */
+export const describeStock = (stock: number, winners = 0): string => {
+  const left = Math.max(stock - winners, 0)
+  if (stock <= 0) return 'No units on this drop.'
+  if (stock === 1) return winners > 0 ? 'The single unit is claimed.' : '1-of-1 — a single unit.'
+  if (left === 0) return `All ${stock} units claimed.`
+  return `${left} of ${stock} units still unclaimed.`
+}
 
 /** Stable per-id accent, so an uncatalogued drop still looks deliberate. */
 const accentFor = (id: string): string => {
@@ -59,12 +87,12 @@ export const findDrop = (id: string): DropMeta | undefined =>
  */
 export const dropMetaFor = (id: string, metaRef?: string): DropMeta => {
   const seeded = findDrop(id)
-  if (seeded) return seeded
+  if (seeded) return { ...seeded, number: dropNumberFromId(id) || seeded.number }
   const name = metaRef && metaRef.trim() ? metaRef : id
   return {
     id,
     contractAddress: config.contractAddress,
-    number: 0,
+    number: dropNumberFromId(id),
     name,
     tagline: 'Sealed drop on Midnight',
     blurb:

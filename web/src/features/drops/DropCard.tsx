@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 
+import { describeStock } from '../../config/drops'
 import type { DropMeta } from '../../config/drops'
 import type { DropState } from '../../lib/midnight'
+import { DropMark } from '../../ui/DropMark'
 import { Stat } from '../../ui/Stat'
 import { Countdown } from './Countdown'
 import { PhasePill } from './PhasePill'
@@ -14,8 +16,8 @@ type Props = {
 
 export const DropCard = ({ drop, state, loading }: Props) => (
   <Link className="card drop-card" to={`/drop/${drop.id}`}>
-    <div className="drop-card__art" style={{ color: drop.accent }} aria-hidden>
-      {drop.glyph}
+    <div className="drop-card__art">
+      <DropMark id={drop.id} accent={drop.accent} />
     </div>
 
     <div className="row">
@@ -27,7 +29,7 @@ export const DropCard = ({ drop, state, loading }: Props) => (
     <div>
       <h3>{drop.name}</h3>
       <p className="muted" style={{ margin: '0.3rem 0 0' }}>
-        {drop.tagline}
+        {state ? describeStock(state.stock, state.winnerCount) : drop.tagline}
       </p>
     </div>
 

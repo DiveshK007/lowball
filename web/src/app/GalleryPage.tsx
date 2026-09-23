@@ -5,7 +5,7 @@
 
 import { Link } from 'react-router-dom'
 
-import { dropMetaFor } from '../config/drops'
+import { dropMetaFor, isProductDrop } from '../config/drops'
 import { config, isContractConfigured, networkLabel } from '../config'
 import { useDropList } from '../lib/midnight'
 import type { DropListing } from '../lib/midnight'
@@ -47,8 +47,12 @@ export const GalleryPage = () => {
   // The contract is the catalogue: every drop it holds shows up here, so the
   // house can open one without shipping a web build.
   const { drops, loading } = useDropList(config.contractAddress)
-  const featured = drops[0] ?? null
-  const rest = drops.slice(1)
+  // Proof drops are evidence, not product. They belong under their own heading,
+  // not mixed into the gallery where they read as broken or sold-out stock.
+  const productDrops = drops.filter((d) => isProductDrop(d.dropId))
+  const proofDrops = drops.filter((d) => !isProductDrop(d.dropId))
+  const featured = productDrops[0] ?? null
+  const rest = productDrops.slice(1)
 
   return (
     <div className="stack" ref={root}>
@@ -135,6 +139,40 @@ export const GalleryPage = () => {
           </div>
         </div>
       </div>
+
+      {proofDrops.length > 0 ? (
+        <section className="stack proofs reveal">
+          <div className="stack" style={{ gap: '0.3rem' }}>
+            <span className="eyebrow">Proofs</span>
+            <h2 style={{ margin: 0 }}>Drops kept as evidence</h2>
+            <p className="muted" style={{ margin: 0, maxWidth: '46rem' }}>
+              These are not for sale. They are closed drops that demonstrate the
+              contract's guarantees on chain — every bidder able to open their own
+              envelope, and stock enforced so a drop can genuinely sell out. Each
+              has a public receipts page that needs no wallet.
+            </p>
+          </div>
+          <div className="proofs__list">
+            {proofDrops.map((listing) => (
+              <article className="tile tile--sunk proofs__item" key={listing.dropId}>
+                <div className="row">
+                  <span className="mono">{listing.dropId}</span>
+                  <div className="masthead__spacer" />
+                  <span className="pill">closed</span>
+                </div>
+                <p className="tile__note" style={{ margin: 0 }}>
+                  {listing.metaRef || listing.dropId} — {listing.bidCount} sealed
+                  bid{listing.bidCount === 1 ? '' : 's'}, {listing.winnerCount} winner
+                  {listing.winnerCount === 1 ? '' : 's'}, stock {listing.stock}.
+                </p>
+                <Link className="mono" to={`/receipts/${listing.dropId}`}>
+                  verify on chain →
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }
