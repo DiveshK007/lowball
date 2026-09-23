@@ -632,7 +632,11 @@ a.mono {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 1rem;
-  align-items: stretch;
+  /* `stretch` made every tile as tall as the tallest in its row, which left
+     large empty boxes beside the short ones. Tiles size to their content and
+     the feature tile spans rows to keep the asymmetry deliberate. */
+  align-items: start;
+  grid-auto-rows: min-content;
 }
 
 .bento__tile {
@@ -645,7 +649,7 @@ a.mono {
 }
 
 /* the live drop dominates */
-.bento__tile--feature { grid-column: span 4; grid-row: span 2; }
+.bento__tile--feature { grid-column: span 4; grid-row: span 2; align-self: stretch; }
 .bento__tile--wide { grid-column: span 4; }
 .bento__tile--tall { grid-column: span 2; grid-row: span 2; }
 
