@@ -756,6 +756,9 @@ a.mono {
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 9;
+  /* The featured tile is tall; without a cap the frame stretched to ~540px and
+     left the mark marooned in dead space. */
+  max-height: 260px;
   border-radius: var(--r);
   /* The faint blueprint grid the design system uses for card grounds; the
      emoji-era `font-size` is gone, the frame is not. */
@@ -1254,10 +1257,12 @@ a.mono {
 /* Replaces the emoji card art. Sized by the card, not the glyph. */
 .drop-mark {
   display: block;
-  width: 100%;
+  width: clamp(72px, 34%, 160px);
   height: auto;
-  max-width: 96px;
   border-radius: 10px;
+  /* Lifts the mark off the blueprint ground — depth on a light field comes
+     from a soft, ground-tinted shadow, never a hard black one. */
+  filter: drop-shadow(3px 5px 30px rgb(26 32 36 / 0.18));
 }
 
 /* --- proofs (evidence drops, not product) -------------------------------- */

@@ -1,5 +1,5 @@
 // Every wallet failure mode from spec §6 gets its own recovery path here, so
-// no screen has to invent copy for "Lace is missing" or "wrong network".
+// no screen has to invent copy for "no wallet" or "wrong network".
 
 import { config, networkLabel } from '../../config'
 import { useWallet } from '../../lib/midnight'
@@ -15,11 +15,11 @@ export const WalletNotice = () => {
       error.code === 'wallet-not-installed' ? (
         <a
           className="btn btn--ghost"
-          href={config.laceInstallUrl}
+          href={config.oneAmInstallUrl}
           target="_blank"
           rel="noreferrer"
         >
-          Install
+          Install 1AM
         </a>
       ) : (
         <button type="button" className="btn btn--ghost" onClick={() => connect()}>
@@ -49,19 +49,22 @@ export const WalletNotice = () => {
         title="No Midnight wallet detected."
         hint={
           <>
-            LOWBALL needs Lace to sign a bid. Install it, set the network to{' '}
-            {networkLabel[config.networkId]}, fund it from the faucet, then reload
-            this page. Browsing works without a wallet.
+            You need a Midnight wallet to sign a bid. <strong>1AM</strong> is the
+            shorter path — it proves in your browser, so there is no proof server
+            to install. <strong>Lace</strong> works too, but needs one running
+            locally. Either way, set the network to{' '}
+            {networkLabel[config.networkId]} and fund it from the faucet, then
+            reload. Browsing works without a wallet.
           </>
         }
         action={
           <a
             className="btn"
-            href={config.laceInstallUrl}
+            href={config.oneAmInstallUrl}
             target="_blank"
             rel="noreferrer"
           >
-            Install Lace
+            Install 1AM
           </a>
         }
       />
