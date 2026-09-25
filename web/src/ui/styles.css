@@ -945,12 +945,16 @@ a.mono {
 
 /* ---------------------------------------------------------- bid + form -- */
 
-.field { display: grid; gap: 0.5rem; }
+.field { display: grid; gap: 0.5rem; min-width: 0; }
+.field > * { min-width: 0; }
 .field__label { font-size: 0.9rem; color: var(--slate-2); }
 
 .field__control {
   display: flex;
   align-items: center;
+  /* The bid input plus its "tDUST" suffix would not shrink below their
+     intrinsic width, pushing the form 43px off a 375px screen. */
+  min-width: 0;
   gap: 0.6rem;
   padding: 0.85rem 1.1rem;
   border: 1px solid var(--line-2);
@@ -1432,4 +1436,18 @@ a.mono {
     align-items: center;
     min-height: 34px;
   }
+}
+
+/* The bid input must be allowed to shrink; a text input's default size
+   attribute gives it an intrinsic width that flexbox otherwise respects. */
+.field__control input {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ritual,
+.ritual > *,
+.drop-layout,
+.drop-layout > * {
+  min-width: 0;
 }
