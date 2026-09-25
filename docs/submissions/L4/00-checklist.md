@@ -35,7 +35,7 @@ network, Preprod**.
 
 | | |
 |---|---|
-| **Contract** | `f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc` (multi-drop + accumulator + stock) |
+| **Contract** | [`f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc) (multi-drop + accumulator + stock) |
 | **Deploy** | block 2,520,844 · 2026-09-12 |
 | **Drops opened** | `drop-001` (stock 50) · `drop-002` (stock 25) · `drop-soldout` (stock evidence) |
 | **Drops** | Genesis Envelope (stock 50) · Second Envelope (stock 25) · reserves sealed · both close 2026-12-31. `drop-soldout` closed: stock 2, 3 bids, 2 winners |

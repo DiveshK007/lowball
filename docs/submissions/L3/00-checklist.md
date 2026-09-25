@@ -17,7 +17,7 @@
 
 ## Contract address (mandatory)
 
-**Preprod:** `f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`
+**Preprod:** [`f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc`](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc)
 Deploy tx `87611f96…a301025` · block 2,202,228 · verified on the Preprod indexer as `ContractDeploy`.
 (The tx hash previously recorded here, `0018b530…a6f632`, does not match the chain; the deploy
 transaction's hash at block 2,202,228 is `87611f96983aa39029dc4778d6b2688726d41d0b4c35e784b5b96df83a301025`.)

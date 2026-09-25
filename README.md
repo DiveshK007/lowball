@@ -17,7 +17,7 @@ The only things ever made public are the things that keep the house honest: the 
 | | |
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
-| **Contract (Preprod)** | [`f81e44ea…d9ec66dc`](https://lowball-orpin.vercel.app/drop/drop-001) — **two drops open now** (stock 50 and 25), closing 2026-12-31 |
+| **Contract (Preprod)** | [`f81e44ea…d9ec66dc`](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc) — on the Preprod explorer. **Two drops open** (stock 50 and 25), closing 2026-12-31 · [open the drop](https://lowball-orpin.vercel.app/drop/drop-001) |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 | **X** | [@lowballdrops](https://x.com/lowballdrops) — every drop posted, with its commitment hash |
 | **Demo video** | ⚠️ [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — **out of date**: filmed against the Preview single-drop build. It shows connect, sealed bid, verdict, tests and CI, but not multi-drop, stock or the sold-out path. Re-shoot pending ([shot list](docs/demo-video-script.md)) |
@@ -58,6 +58,8 @@ The 60-second walkthrough:
 ```
 f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc
 ```
+
+**[View it on the Preprod explorer →](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc)**
 
 Preprod, deployed at block **2,520,844**. Holds three drops: **`drop-001`**
 (Genesis Envelope, stock 50) and **`drop-002`** (Second Envelope, stock 25), both
