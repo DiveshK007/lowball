@@ -518,6 +518,12 @@ a.mono {
 
 .banner {
   display: flex;
+  /* Grid and flex children default to `min-width: auto`, which refuses to
+     shrink below the content's intrinsic width. Measured on the drop page at
+     375px: this banner sat at 443px inside a 351px column and dragged 37
+     elements off the right edge. */
+  min-width: 0;
+  flex-wrap: wrap;
   gap: 0.9rem;
   align-items: flex-start;
   padding: 1rem 1.2rem;
@@ -1392,6 +1398,36 @@ a.mono {
   }
 
   .wordmark {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+  }
+}
+
+/* --- narrow-width containment -------------------------------------------- */
+/* The same `min-width: auto` trap applies to anything laid out as a flex or
+   grid child, so the containers that hold long text or a trailing action all
+   need to be allowed to shrink. */
+.stack > *,
+.row > *,
+.wrap > * {
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  /* Put a banner's action under its text rather than squeezing both onto one
+     line, and let the back-links be a comfortable tap target. */
+  .banner {
+    flex-direction: column;
+    padding: 0.9rem 1rem;
+  }
+
+  .banner > .btn,
+  .banner > a.btn {
+    align-self: flex-start;
+  }
+
+  a.faint {
     display: inline-flex;
     align-items: center;
     min-height: 34px;
