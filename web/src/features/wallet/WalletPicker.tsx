@@ -51,16 +51,32 @@ export const WalletPicker = ({ wallets, onChoose, busy }: Props) => {
     <div className="wallet-menu" ref={root}>
       <button
         type="button"
-        className="btn"
+        className="btn wallet-menu__toggle"
         onClick={() => setOpen((v) => !v)}
         disabled={busy}
         aria-haspopup="menu"
         aria-expanded={open}
       >
         {busy ? 'Check your wallet…' : 'Connect wallet'}
-        <span className="wallet-menu__caret" aria-hidden="true">
-          {open ? '▴' : '▾'}
-        </span>
+        {/* A drawn chevron, not a text glyph: "▾" falls back to a dot in the
+            brand font, which read as a stray bullet next to the label. */}
+        <svg
+          className="wallet-menu__caret"
+          viewBox="0 0 12 12"
+          width="12"
+          height="12"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d={open ? 'M2.5 7.5 L6 4 L9.5 7.5' : 'M2.5 4.5 L6 8 L9.5 4.5'}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
 
       {open ? (
