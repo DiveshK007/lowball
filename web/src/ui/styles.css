@@ -1369,3 +1369,25 @@ a.mono {
     white-space: nowrap;
   }
 }
+
+/* --- touch targets ------------------------------------------------------- */
+/* Measured on a 375px viewport: the wordmark was 23px tall and the inline
+   "open receipts →" / "verify on chain →" links 19px. Those are hard to hit
+   with a thumb. Grow the hit area with padding rather than type size, so the
+   layout and the type scale are untouched. */
+@media (max-width: 480px) {
+  a.mono,
+  .tile__note + a.mono,
+  .proofs__item a.mono {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding-block: 0.35rem;
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+  }
+}
