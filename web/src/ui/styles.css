@@ -1334,3 +1334,38 @@ a.mono {
   flex-direction: column;
   gap: 0.6rem;
 }
+
+/* --- masthead at narrow widths ------------------------------------------ */
+/* The bar is wordmark + network pill + connect button. Below ~560px those no
+   longer fit on one line: measured 61px of overflow at 375px, which pushed the
+   connect button off-screen and gave the whole page a horizontal scrollbar.
+   Nothing here is allowed to force the row wider than the viewport. */
+@media (max-width: 560px) {
+  .masthead__inner {
+    width: min(1240px, 100% - 1.5rem);
+    padding: 0.5rem 0.55rem 0.5rem 0.85rem;
+    gap: 0.5rem;
+  }
+
+  /* The network is also stated on the gallery and in the footer, so the pill is
+     the right thing to drop when space runs out. */
+  .masthead__inner > .pill {
+    display: none;
+  }
+
+  .wordmark {
+    font-size: 0.98rem;
+  }
+
+  /* Let the button shrink instead of pushing the row wider. */
+  .wallet-menu,
+  .masthead__inner .btn {
+    min-width: 0;
+  }
+
+  .masthead__inner .btn {
+    padding-inline: 0.7rem;
+    font-size: 0.86rem;
+    white-space: nowrap;
+  }
+}
