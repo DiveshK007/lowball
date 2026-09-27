@@ -8,7 +8,7 @@ Provably-fair mystery drops on [Midnight](https://midnight.network). A drop's re
 
 ## What This Does (initial product idea)
 
-Name-your-price gacha, single-player vs the house. Priceline × blind-box mania × degen flex content. Each drop is one item (or 1-of-N stock) with a hidden reserve committed onchain before bids open. Players sealed-bid in tDUST from Lace; a ZK circuit compares the bid to the committed reserve and issues an instant verdict — win at your price, or auto-refund with no near-miss information leaked. When a drop closes, the house reveals `(reserve, salt)` and the contract verifies it matches the original commitment; a public receipts page shows the proof.
+Name-your-price gacha, single-player vs the house. Priceline × blind-box mania × degen flex content. Each drop is one item (or 1-of-N stock) with a hidden reserve committed onchain before bids open. Players sealed-bid in tDUST from a Midnight wallet (1AM or Lace); a ZK circuit compares the bid to the committed reserve and issues an instant verdict — win at your price, or auto-refund with no near-miss information leaked. When a drop closes, the house reveals `(reserve, salt)` and the contract verifies it matches the original commitment; a public receipts page shows the proof.
 
 The only things ever made public are the things that keep the house honest: the reserve commitment before bids open, and the reserve reveal (hash-verified) after close. Built for the Rise In "New Moon to Full" program — list primitive: Sealed-Bid Auction; category: Consumer focus.
 
@@ -37,7 +37,7 @@ The only things ever made public are the things that keep the house honest: the 
 >   -d '{"query":"{contractAction(address:\"f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc\"){__typename ... on ContractCall{entryPoint}}}"}'
 > ```
 
-Before you click anything: install [Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk), switch it to **Preprod**, and fund it at the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/). Fees are paid in **DUST**, generated from holding NIGHT — in Lace, register your tNIGHT for DUST generation and give it a minute to accrue before bidding. Browsing needs none of this; bidding does.
+Before you click anything: install a Midnight wallet — **[1AM](https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp)** (recommended: it proves in your browser, so there is no proof server to run) or **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)** (needs a local proof server). Switch it to **Preprod** and fund it at the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/). Fees are paid in **DUST**, generated from holding NIGHT — register your tNIGHT for DUST generation in your wallet and give it a few minutes to accrue. Neither wallet sponsors fees. Browsing needs none of this; bidding does. Full walkthrough: [docs/USAGE.md](docs/USAGE.md).
 
 New to Midnight wallets? The **[usage guide](docs/USAGE.md)** walks the whole thing
 end to end, including the tDUST step that catches everyone.
@@ -45,8 +45,8 @@ end to end, including the tDUST step that catches everyone.
 The 60-second walkthrough:
 
 1. Open the gallery, click **Genesis Envelope**.
-2. **Connect Lace** — the app checks the extension is present, on the right network, and answering.
-3. Type an amount and hit **Seal this bid**. The proof is built locally, Lace signs, the chain records a commitment.
+2. **Connect wallet** — pick 1AM or Lace; the app checks the extension is present, on the right network, and answering.
+3. Type an amount and hit **Seal this bid**. The proof is built on your machine (in-browser with 1AM, on your local proof server with Lace), your wallet signs, and the chain records a commitment.
 4. Scroll to the **side-by-side panel**: your amount on the left, the public ledger's view on the right. The right side never contains a number.
 5. After the house reveals, **Open your envelope** for the verdict.
 6. Open **[public receipts](https://lowball-orpin.vercel.app/receipts/drop-001)** — no wallet, no connection. It lays out the three public facts in the order the chain recorded them (reserve sealed → bids counted → reserve revealed) and lets you paste the salt to **recompute the commitment in your own browser**. Don't trust the house; recompute the hash. The maths is unit-tested against a commitment the chain already accepted (`web/src/lib/midnight/hashes.test.ts`).
@@ -150,7 +150,7 @@ Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC /
 |---|---|
 | Contract | Compact (`compact` 0.5.x / compiler 0.31.x), compiled to `contract/src/managed/` |
 | Chain | Midnight — **Preprod** ([runbook](docs/preprod-deploy-cloud.md)) |
-| dApp | React 19 + TypeScript + Vite, Midnight.js SDK, DApp Connector API (Lace) |
+| dApp | React 19 + TypeScript + Vite, Midnight.js SDK, DApp Connector API v4 (1AM + Lace) |
 | Proving | Local proof server in Docker (`midnightntwrk/proof-server`, port 6300) |
 | House ops | Node 22 + TypeScript CLI (`ops/`) — `create-drop`, `close-and-reveal` |
 | Tests / CI | Vitest (contract + web), GitHub Actions on every push and PR |
@@ -159,9 +159,9 @@ Every value in LOWBALL falls into one of three buckets — the Midnight PUBLIC /
 ## Prerequisites
 
 - **Node.js v22** (pinned by `.nvmrc`)
-- **Docker Desktop** — runs the local proof server
-- **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)** set to **Preprod**, funded from the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/)
-- tDUST for fees: register your tNIGHT for **DUST generation** in Lace and let it accrue (NIGHT does not pay fees directly)
+- **Docker Desktop** — only needed to run a local proof server for Lace; 1AM proves in-browser
+- A Midnight wallet set to **Preprod** and funded from the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/): **[1AM](https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp)** (no proof server needed) or **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)**
+- tDUST for fees: register your tNIGHT for **DUST generation** in your wallet and let it accrue (NIGHT does not pay fees directly, and neither wallet sponsors them)
 - **Compact compiler** — only needed to recompile the contract (see Setup)
 
 ## Setup & Run Locally
@@ -170,7 +170,7 @@ Prereqs (macOS; Windows needs WSL):
 
 - Node.js **v22+** (this repo pins v22 via `.nvmrc`)
 - Docker Desktop
-- Lace Midnight wallet extension (needed from L2 onward)
+- A Midnight wallet extension — 1AM or Lace (needed from L2 onward)
 
 Install the Compact compiler ([docs](https://docs.midnight.network/getting-started/installation)):
 
