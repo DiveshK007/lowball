@@ -3,7 +3,7 @@
 | Requirement | Status | Evidence |
 |---|---|---|
 | Fully functional dApp using Midnight's privacy model | ✅ | live at https://lowball-orpin.vercel.app; full loop run on chain (see L2 checklist) |
-| Minimum 3 tests passing | ✅ | **56 passing** — 27 contract + 29 web |
+| Minimum 3 tests passing | ✅ | **58 passing** — 27 contract + 31 web |
 | CI/CD pipeline running (workflow + passing runs) | ✅ | [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml); two jobs green on every push |
 | Idea from the provided list | ✅ | **Sealed-Bid Auction** — private bids, verifiable winner |
 | Product proposal submitted for approval | ⏳ | drafted in [`PROPOSAL.md`](../../../PROPOSAL.md) — submit on Rise In |
