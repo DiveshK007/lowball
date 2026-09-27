@@ -178,9 +178,13 @@ Install the Compact compiler ([docs](https://docs.midnight.network/getting-start
 curl --proto '=https' --tlsv1.2 -LsSf \
   https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
-compact update           # installs the compactc toolchain
-compact --version        # expect: compact 0.5.x
-compact compile --version # expect: 0.31.x
+# Pin the toolchain. A bare `compact update` takes the newest release, and 0.34.0
+# emits contracts needing @midnight-ntwrk/compact-runtime 0.19.x while this repo
+# pins ^0.16.0 — the mismatch that broke CI for twelve days. CI pins the same
+# version; move the two together or not at all.
+compact update 0.31.1
+compact --version         # expect: compact 0.5.x
+compact compile --version # expect: 0.31.1
 ```
 
 Run the Midnight proof server locally on port 6300:
