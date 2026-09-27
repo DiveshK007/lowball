@@ -223,8 +223,14 @@ cd ops && npm install && npm run build && node dist/index.js --help
 ## Run Tests
 
 ```
-npm test --prefix contract   # 27 tests — circuits, multi-drop, accumulator, stock
-npm test --prefix web        # 29 tests — formatting, commitment hashes, drop ids
+# The contract's TypeScript bindings live in contract/src/managed/, which is
+# git-ignored — so on a fresh clone you must compile before the suite can import
+# them. `test:compile` does both.
+npm run test:compile --prefix contract   # 27 tests — circuits, multi-drop, accumulator, stock
+npm test --prefix web                    # 31 tests — formatting, commitment hashes, drop ids
+
+# Once compiled, the contract suite runs on its own:
+npm test --prefix contract
 ```
 
 The web suite includes `web/src/lib/midnight/hashes.test.ts`, which asserts the
