@@ -19,7 +19,6 @@ export type DropMeta = {
   readonly tagline: string
   readonly blurb: string
   /** Item art. A glyph keeps the mystery — nobody sees the item until claim. */
-  readonly glyph: string
   readonly accent: string
   /** What the house says the item is worth, for lowball framing only. */
   readonly srp: string
@@ -34,7 +33,6 @@ export const SEEDED_DROPS: readonly DropMeta[] = [
     tagline: 'First sealed drop on Midnight',
     blurb:
       'A collectible record minted to every wallet that clears the hidden reserve, while units last. The reserve was committed onchain before this page existed — the house cannot move it now, and cannot see what you bid.',
-    glyph: '✉️',
     accent: '#7c5cff',
     srp: '40 tDUST',
   },
@@ -105,7 +103,6 @@ export const dropMetaFor = (id: string, metaRef?: string): DropMeta => {
     tagline: 'Sealed drop on Midnight',
     blurb:
       'The reserve for this drop was committed onchain before bidding opened. The house cannot move it now, and cannot see what you bid.',
-    glyph: '✉️',
     accent: accentFor(id),
     srp: '—',
   }
