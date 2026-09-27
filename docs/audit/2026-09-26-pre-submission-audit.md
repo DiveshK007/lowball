@@ -161,3 +161,83 @@ Midnight's official guide, and the non-retroactive-designation trap is documente
 
 **Fresh clone, web half (item 9)** — `npm install && npm test && npm run build` in
 `web/` all succeed on a clean clone (31 tests, clean build).
+
+---
+
+# Phase 2 — fixes
+
+| # | Finding | Status | Commit |
+|---|---|---|---|
+| B1 | Fresh clone cannot run contract tests | **Fixed** | `882dceb` |
+| B2 | README smoke-test path does not exist | **Fixed** | `d5d6df6` |
+| B3 | README installs an unpinned toolchain | **Fixed** | `c3be470` |
+| B4 | No Google Sheet for feedback | **Open** — needs the Sheet created; only you can do this |
+| B5 | Zero verified users | **Open** — needs real testers; tooling is ready |
+| B6 | Demo video stale | **Open** — needs recording; shot list ready |
+| B7 | No L5 checklist | **Fixed** | `e939124` |
+| M1 | Stale test counts (29 → 31, 56 → 58) | **Fixed** | `882dceb`, `f825bed` |
+| M2 | README Lace-only in 8 places | **Fixed** | `2892310` |
+| M3 | Missing meta/og description | **False positive** — see below |
+| M4 | Dead `lace.io/download` link (404) | **Fixed** | `c57d36d` |
+| N1 | Dead `glyph: '✉️'` shipping in the bundle | **Fixed** | `b4d7426` |
+| N2 | 404 page reused the site title | **Fixed** | `1edaad1` |
+| N3 | USAGE named Lace in a wallet-agnostic step | **Fixed** | `425110f` |
+
+### M3 was a false positive — corrected
+
+The deployed page **does** carry `description`, `og:description` and
+`twitter:description`. My first extraction used a regex requiring
+`content="…"` on the same line as the tag name; `web/index.html` writes those
+attributes across lines, so they did not match. Re-parsed each `<meta>` block
+properly and all three are present with good copy. **No change was made**, and
+the original finding is withdrawn rather than "fixed".
+
+# Phase 3 — verified against production
+
+Re-run after deploy, against `https://lowball-orpin.vercel.app` and a clean
+clone of `main`, not against local state.
+
+**Fresh clone (`/tmp/fc2`, commit `e939124`), README steps run literally:**
+
+```
+compact update 0.31.1        -> compact compile 0.31.1
+npm run compact:hello        -> src/managed/hello-world/{compiler,contract,keys,zkir}
+npm run test:compile --prefix contract  -> Tests  27 passed (27)
+npm test --prefix web                   -> Tests  31 passed (31)
+```
+
+All three fresh-clone blockers are genuinely closed: a stranger following the
+README now gets a passing build.
+
+**Deployed bundle:** `✉️` occurrences **0** (was 2).
+**404 page title:** `Not found — LOWBALL — sealed-bid mystery drops on Midnight`.
+**UI regression sweep:** gallery, drop and receipts at 375 and 1440 — **0 issues**.
+**On-chain:** live contract still answers `createDrop`/`checkWin`; three drops
+unchanged. **CI:** green on HEAD `e939124`.
+
+## L4–L6 requirements and evidence
+
+| Level | Requirement | Evidence | Status |
+|---|---|---|---|
+| L4 | MVP live on Preprod, verifiable address | [`f81e44ea…`](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc), deploy block 2,520,844 confirmed on chain | ✅ |
+| L4 | README + setup + usage docs | `README.md`, `docs/USAGE.md` — fresh-clone verified | ✅ |
+| L4 | CI/CD passing | `.github/workflows/ci.yml`, green on `e939124` | ✅ |
+| L4 | X product profile | [@lowballdrops](https://x.com/lowballdrops) (HTTP 200) | ✅ |
+| L4 | 15+ commits in window | 78 commits since 2026-09-01 | ✅ |
+| L4 | Live demo link | `https://lowball-orpin.vercel.app` (200) | ✅ |
+| L4 | Demo video | Stale — predates multi-drop/stock | ⚠️ |
+| L5 | 50 unique bidding wallets | `docs/USERS.md` — **0** | ❌ |
+| L5 | Mentor market-fit checkpoint before onboarding | Not booked — **gates recruiting** | ❌ |
+| L5 | Living feedback loop | `docs/FEEDBACK.md` — awaiting the Sheet | ❌ |
+| L5 | In-app feedback prompt after a verdict | `BidReceipt.tsx` — built, hidden until the form URL is set | ✅ |
+| L5 | Every bidder can win | `drop-soldout`: stock 2, 3 bids, **2 winners**, third rejected | ✅ |
+| L5 | Drop calendar 2–3/week | `docs/traction.md` formats + cadence | ⏳ |
+| L6 | 70 real users on Preprod | `docs/USERS.md` — **0** | ❌ |
+| L6 | Feedback in a Google Sheet | Not created | ❌ |
+| L6 | Real users, verifiable tx each | `ops/src/verify-users.ts` — tested against real and forged rows | ✅ tooling |
+| L6 | No AI-rewritten feedback | `FEEDBACK.md` policy + Source column | ✅ policy |
+| L6 | Current demo video | Stale | ⚠️ |
+| L6 | Real README screenshots | `docs/submissions/L4/` — captures of the deployed site | ✅ |
+| L6 | 30+ commits this month | 78 since 2026-09-01 | ✅ |
+| L6 | Brand assets (logo, flex-card) | Not started | ❌ |
+| L6 | ~~Mainnet deploy~~ | Removed from L6 by the program (spec §10, 2026-09-23) | n/a |
