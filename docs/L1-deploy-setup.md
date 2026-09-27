@@ -53,7 +53,7 @@ Lace is the browser wallet the *player* uses to sign `placeBid` txs
 from the web app. Install it now to have it ready for L2:
 
 - Chrome/Brave extension: search "Lace Midnight" in the Chrome Web Store
-  (or grab it via https://www.lace.io/download)
+  (or install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk))
 - Set network to **Preprod**
 - Create a fresh wallet (separate from the house seed above)
 - Fund that wallet at the same faucet URL
