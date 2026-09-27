@@ -196,8 +196,9 @@ Smoke-test the Compact toolchain against `contract/hello-world.compact`:
 
 ```
 cd contract
-compact compile hello-world.compact managed/hello-world
-# expect: managed/hello-world/{contract,keys,zkir,compiler}
+npm run compact:hello
+# equivalently: compact compile src/hello-world.compact src/managed/hello-world
+# expect: src/managed/hello-world/{contract,keys,zkir,compiler}
 ```
 
 Web dev server:
