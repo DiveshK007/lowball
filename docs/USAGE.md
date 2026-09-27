@@ -157,7 +157,7 @@ Three things then happen, and the button tells you which one it's on
 1. **Your browser builds a zero-knowledge proof.** This takes a few seconds and is the
    slowest part. Your bid amount is used in the maths but is never included in what
    gets sent.
-2. **Lace asks you to sign.** This pays the tiny DUST fee.
+2. **Your wallet asks you to sign.** This pays the tiny DUST fee.
 3. **The transaction lands on the chain**, which records a *commitment* — a
    scrambled fingerprint of your bid — and increases the public bid count by one.
 

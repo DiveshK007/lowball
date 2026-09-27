@@ -18,7 +18,6 @@ export type DropMeta = {
   readonly name: string
   readonly tagline: string
   readonly blurb: string
-  /** Item art. A glyph keeps the mystery — nobody sees the item until claim. */
   readonly accent: string
   /** What the house says the item is worth, for lowball framing only. */
   readonly srp: string
