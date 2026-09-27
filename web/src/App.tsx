@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 
 import { config, networkLabel } from './config'
@@ -36,7 +37,20 @@ const Footer = () => (
   </footer>
 )
 
-const NotFound = () => (
+const SITE_TITLE = 'LOWBALL — sealed-bid mystery drops on Midnight'
+
+const NotFound = () => {
+  // A 404 that keeps the site title reads as a working page in a browser tab and
+  // in a shared link. Restore it on unmount so client-side navigation away from
+  // here does not leave the 404 title behind.
+  useEffect(() => {
+    document.title = `Not found — ${SITE_TITLE}`
+    return () => {
+      document.title = SITE_TITLE
+    }
+  }, [])
+
+  return (
   <div className="center-note">
     <span className="eyebrow">404</span>
     <h2>Nothing sealed here.</h2>
@@ -48,7 +62,8 @@ const NotFound = () => (
       Back to the gallery
     </Link>
   </div>
-)
+  )
+}
 
 const App = () => (
   <WalletProvider>
