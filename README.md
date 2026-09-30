@@ -17,24 +17,26 @@ The only things ever made public are the things that keep the house honest: the 
 | | |
 |---|---|
 | **App** | **https://lowball-orpin.vercel.app** |
-| **Contract (Preprod)** | [`f81e44ea…d9ec66dc`](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc) — on the Preprod explorer. **Two drops open** (stock 50 and 25), closing 2026-12-31 · [open the drop](https://lowball-orpin.vercel.app/drop/drop-001) |
+| **Contract (Preview)** | [`11da2b5b…a628d530`](https://explorer.preview.midnight.network/contracts/11da2b5b4906e4d23d5ad61e294c83d09861035971feed84e6a45210a628d530) — on the Preview explorer. **Two drops open** (stock 50 and 25) · [open the drop](https://lowball-orpin.vercel.app/drop/drop-001) |
 | **Public receipts** | [/receipts/drop-001](https://lowball-orpin.vercel.app/receipts/drop-001) — verify the drop, no wallet needed |
 | **X** | [@lowballdrops](https://x.com/lowballdrops) — every drop posted, with its commitment hash |
 | **Demo video** | ⚠️ [https://youtu.be/om0mTpbdXiU](https://youtu.be/om0mTpbdXiU) — **out of date**: filmed against the Preview single-drop build. It shows connect, sealed bid, verdict, tests and CI, but not multi-drop, stock or the sold-out path. Re-shoot pending ([shot list](docs/demo-video-script.md)) |
 
-> **Current chain state.** One contract holds every drop; every bidder on a drop can
-> open their own envelope, and the first `stock` bidders to claim take the units.
+> **Running on Preview.** Midnight's **Preprod indexer has been down since
+> 29 September** (v3 and v4 both return 503), which makes every chain read fail —
+> the contract is intact, but nothing can be displayed. Reported in the program
+> group. **Per mentor guidance on 30 September, the live demo and user onboarding
+> run on Preview.** The Preprod deploy is still listed below as deployed and
+> verifiable.
+>
 > **`drop-001` (Genesis Envelope, stock 50)** and **`drop-002` (Second Envelope,
-> stock 25)** are **open on Preprod** until **2026-12-31** — stocked generously and
-> priced low so most bidders win. A third drop, `drop-soldout`, is closed and carries
-> the evidence for stock enforcement: **stock 2, three sealed bids, two winners**, with
-> the third bidder told the drop sold out. Browsing needs no wallet. Check what is on
-> chain right now:
+> stock 25)** are **open on Preview** — stocked generously and priced low so most
+> bidders win. Check what is on chain right now:
 >
 > ```bash
-> curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
+> curl -s -X POST https://indexer.preview.midnight.network/api/v3/graphql \
 >   -H 'content-type: application/json' \
->   -d '{"query":"{contractAction(address:\"f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc\"){__typename ... on ContractCall{entryPoint}}}"}'
+>   -d '{"query":"{contractAction(address:\"11da2b5b4906e4d23d5ad61e294c83d09861035971feed84e6a45210a628d530\"){__typename ... on ContractCall{entryPoint}}}"}'
 > ```
 
 Before you click anything: install a Midnight wallet — **[1AM](https://chromewebstore.google.com/detail/1am/bphnkdkcnfhompoegfpgnkidcjfbojjp)** (recommended: it proves in your browser, so there is no proof server to run) or **[Lace](https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokpaflmk)** (needs a local proof server). Switch it to **Preprod** and fund it at the [Preprod faucet](https://midnight-tmnight-preprod.nethermind.dev/). Fees are paid in **DUST**, generated from holding NIGHT — register your tNIGHT for DUST generation in your wallet and give it a few minutes to accrue. Neither wallet sponsors fees. Browsing needs none of this; bidding does. Full walkthrough: [docs/USAGE.md](docs/USAGE.md).
@@ -53,27 +55,32 @@ The 60-second walkthrough:
 
 ## Contract Address
 
-**Live contract — this is the only address a reviewer needs:**
+**Live contract — this is the address the app reads and the one to use tonight:**
+
+```
+11da2b5b4906e4d23d5ad61e294c83d09861035971feed84e6a45210a628d530
+```
+
+**[View it on the Preview explorer →](https://explorer.preview.midnight.network/contracts/11da2b5b4906e4d23d5ad61e294c83d09861035971feed84e6a45210a628d530)**
+
+Preview, deployed at block **1,094,435**. Holds **`drop-001`** (Genesis Envelope,
+stock 50) and **`drop-002`** (Second Envelope, stock 25), both open.
+
+### Preprod deploy — deployed and verifiable, currently unreadable
 
 ```
 f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc
 ```
 
-**[View it on the Preprod explorer →](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc)**
+Preprod, block **2,520,844**, holding three drops including `drop-soldout` — the
+on-chain evidence for stock enforcement (stock 2, three sealed bids, **two
+winners**, the third bidder rejected by the contract).
 
-Preprod, deployed at block **2,520,844**. Holds three drops: **`drop-001`**
-(Genesis Envelope, stock 50) and **`drop-002`** (Second Envelope, stock 25), both
-open until **2026-12-31**, plus **`drop-soldout`**, closed, which is the on-chain
-evidence for stock enforcement — stock 2, three sealed bids, two winners, the
-third bidder rejected by the contract.
-
-Verify it in one call, no wallet:
-
-```bash
-curl -s -X POST https://indexer.preprod.midnight.network/api/v3/graphql \
-  -H 'content-type: application/json' \
-  -d '{"query":"{contractAction(address:\"f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc\"){__typename ... on ContractCall{entryPoint}}}"}'
-```
+> **Preprod indexer outage since 29 Sep, reported in the program group. Per mentor
+> guidance on 30 Sep, the live demo and user onboarding run on Preview.** The
+> contract and all three drops are unchanged on chain; the indexer that serves
+> reads is returning 503, so the explorer and the app cannot display them. This
+> deploy stands as evidence for the levels judged on Preprod.
 
 Each drop's reserve is **sealed** — only its commitment is public, and the amount
 is disclosed at reveal.
