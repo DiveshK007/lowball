@@ -46,7 +46,7 @@ export const GalleryPage = () => {
   const root = useReveal<HTMLDivElement>()
   // The contract is the catalogue: every drop it holds shows up here, so the
   // house can open one without shipping a web build.
-  const { drops, loading } = useDropList(config.contractAddress)
+  const { drops, loading, error, refresh } = useDropList(config.contractAddress)
   // Proof drops are evidence, not product. They belong under their own heading,
   // not mixed into the gallery where they read as broken or sold-out stock.
   const productDrops = drops.filter((d) => isProductDrop(d.dropId))
@@ -74,6 +74,21 @@ export const GalleryPage = () => {
       </section>
 
       <WalletNotice />
+
+      {/* An unreachable indexer used to render as an empty gallery, which reads
+          as a broken product rather than an upstream outage. */}
+      {error ? (
+        <Banner
+          tone={error.code === 'indexer-unreachable' ? 'warn' : 'error'}
+          title={error.message}
+          hint={error.hint}
+          action={
+            <button type="button" className="btn btn--ghost" onClick={refresh}>
+              Retry
+            </button>
+          }
+        />
+      ) : null}
 
       {isContractConfigured() ? null : (
         <Banner

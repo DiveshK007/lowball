@@ -13,9 +13,10 @@ import {
 } from 'react'
 import type { ReactNode } from 'react'
 
+import { config, networkLabel } from '../../config'
 import { connectWallet, watchForWallets } from './connector'
 import type { DetectedWallet } from './connector'
-import { LowballError, asWalletError, isLowballError } from './errors'
+import { LowballError, asReadError, asWalletError, isLowballError } from './errors'
 import {
   checkVerdict,
   placeSealedBid,
@@ -32,6 +33,10 @@ import type {
 
 const toLowballError = (e: unknown): LowballError =>
   isLowballError(e) ? e : asWalletError(e)
+
+/** Chain reads fail differently from wallet calls — an outage is not a user error. */
+const toReadError = (e: unknown): LowballError =>
+  asReadError(e, networkLabel[config.networkId])
 
 /* -------------------------------------------------------------- wallet -- */
 
@@ -174,7 +179,7 @@ export const useDropState = (
         },
         (e: unknown) => {
           if (!cancelled) {
-            setError(toLowballError(e))
+            setError(toReadError(e))
             setLoading(false)
           }
         },
@@ -226,7 +231,7 @@ export const useDropList = (address: string | null): DropListResult => {
         },
         (e: unknown) => {
           if (!cancelled) {
-            setError(toLowballError(e))
+            setError(toReadError(e))
             setLoading(false)
           }
         },

@@ -11,6 +11,7 @@ export type LowballErrorCode =
   | 'network-mismatch'
   | 'contract-not-configured'
   | 'contract-not-found'
+  | 'indexer-unreachable'
   | 'drop-not-found'
   | 'insufficient-dust'
   | 'proof-server-unreachable'
@@ -77,6 +78,32 @@ export const asWalletError = (e: unknown): LowballError => {
  * Circuit `assert` failures surface as transaction errors carrying the assert
  * message from lowball.compact — that is how a verdict comes back to us.
  */
+/**
+ * A chain *read* failed. Distinguish "the indexer is down" from "no such
+ * contract": during the Preprod indexer outage of 2026-09-29 every read threw a
+ * network/CORS error and the gallery rendered as an empty page, which reads as a
+ * broken product rather than an upstream outage.
+ */
+export const asReadError = (e: unknown, networkLabel: string): LowballError => {
+  if (isLowballError(e)) return e
+  const raw = messageOf(e)
+  if (
+    /failed to fetch|networkerror|fetch failed|load failed|cors|ECONNREFUSED|ETIMEDOUT|503|502|504|ERR_NETWORK/i.test(
+      raw,
+    )
+  ) {
+    return new LowballError(
+      'indexer-unreachable',
+      `Midnight's indexer for ${networkLabel} is unreachable, drops can't load right now.`,
+      {
+        hint: 'This is an outage on Midnight’s side, not your connection. The contract and every drop are unchanged on chain — try again shortly.',
+        cause: e,
+      },
+    )
+  }
+  return new LowballError('unknown', raw || 'Could not read chain state.', { cause: e })
+}
+
 export const asCircuitError = (e: unknown): LowballError => {
   if (isLowballError(e)) return e
   const raw = messageOf(e)
