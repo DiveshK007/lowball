@@ -13,11 +13,26 @@ other builders were rejected for.
 | Living feedback loop evidence | ⏳ | [`docs/FEEDBACK.md`](../../FEEDBACK.md) — Sheet link, themes, *What we changed* |
 | Drop calendar, 2–3 per week | ⏳ | Format and cadence in [`docs/traction.md`](../../traction.md); posting from [@lowballdrops](https://x.com/lowballdrops) |
 | In-app feedback prompt after each verdict | ✅ | `web/src/features/bidding/BidReceipt.tsx` — copyable tx hash plus a form link, shown after a bid lands. **Link is hidden until `VITE_FEEDBACK_FORM_URL` is set** |
-| Contract live on Preprod with open drops | ✅ | [`f81e44ea…d9ec66dc`](https://explorer.preprod.midnight.network/contracts/f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc) — `drop-001` (stock 50) and `drop-002` (stock 25) open to 2026-12-31 |
+| Contract live with open drops | ✅ | **Preview** [`11da2b5b…a628d530`](https://explorer.preview.midnight.network/contracts/11da2b5b4906e4d23d5ad61e294c83d09861035971feed84e6a45210a628d530) — `drop-001` (stock 50) and `drop-002` (stock 25), both OPEN. Screenshots: `01`, `02` |
 | Every bidder can actually win | ✅ | Bid accumulator + claim-order stock. Proven on chain: `drop-soldout` — stock 2, 3 sealed bids, **2 winners**, third rejected by the contract |
 | Tests passing | ✅ | 27 contract + 31 web = **58** |
 | CI green | ✅ | [`ci.yml`](../../../.github/workflows/ci.yml), two jobs, green on HEAD |
 | Demo video showing the current build | ⚠️ | Existing video predates multi-drop, the accumulator and stock. Re-shoot per [`docs/demo-video-script.md`](../../demo-video-script.md) |
+
+## Network: running on Preview
+
+Midnight's **Preprod indexer has been down since 2026-09-29** (v3 and v4 both 503,
+CORS preflight failures in the browser). Every chain read goes through it, so the
+Preprod gallery could not render — the contract and drops are intact, just
+unreadable. Reported in the program group.
+
+**Per mentor guidance on 2026-09-30 ("onboard user on preview"), the live demo and
+user onboarding run on Preview.** The Preprod deploy `f81e44ea…` remains in the
+README as deployed and verifiable; it is the evidence L2–L4 were judged on.
+
+The app now shows a clear banner when an indexer is unreachable rather than an
+empty gallery (`03-indexer-outage-banner.png`), so an upstream outage never again
+looks like a broken product.
 
 ## The rules other builders were rejected for
 
