@@ -6,8 +6,8 @@
 
 export type NetworkId = 'preprod' | 'preview' | 'mainnet' | 'undeployed'
 
-const PREPROD_INDEXER = 'https://indexer.preprod.midnight.network/api/v3/graphql'
-const PREPROD_INDEXER_WS = 'wss://indexer.preprod.midnight.network/api/v3/graphql/ws'
+const PREVIEW_INDEXER = 'https://indexer.preview.midnight.network/api/v3/graphql'
+const PREVIEW_INDEXER_WS = 'wss://indexer.preview.midnight.network/api/v3/graphql/ws'
 
 const env = import.meta.env
 
@@ -19,19 +19,19 @@ const trimmed = (value: string | undefined): string | null => {
 /** The connector API versions this app is built against (semver range). */
 export const COMPATIBLE_CONNECTOR_API_VERSION = '4.x'
 
-const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preprod') as NetworkId
+const networkId = (trimmed(env.VITE_NETWORK_ID) ?? 'preview') as NetworkId
 
 /**
- * The live LOWBALL contract on Preprod (deployed at block 2,520,844). Baked as
- * the default so a fresh clone or a Vercel build with no env vars still points
- * at the live drops; VITE_CONTRACT_ADDRESS overrides it for other deploys.
+ * The live LOWBALL contract on **Preview** (deployed at block 1,094,435).
  *
- * Preview -> Preprod on 2026-09-05; multi-drop, bid accumulation and
- * claim-order stock enforcement on 2026-09-12. Bids land in a per-drop Set, so
- * every bidder can open their own envelope, and the first `stock` claims win.
+ * The app ran on Preprod until 2026-09-30. Midnight's Preprod indexer went down
+ * on 2026-09-29 (v3 and v4 both 503), which makes every chain read fail and the
+ * gallery unreadable — nothing to do with the contract, which is intact. Per
+ * mentor guidance the live demo and user onboarding run on Preview; the Preprod
+ * deploy `f81e44ea…` stays in the README as deployed and verifiable.
  */
-const PREPROD_CONTRACT =
-  'f81e44eaf0acc9f92c80aba03c6ac822c38004d09b9c4d5d5ba330b4d9ec66dc'
+const PREVIEW_CONTRACT =
+  '11da2b5b4906e4d23d5ad61e294c83d09861035971feed84e6a45210a628d530'
 
 /** Per-network faucet + explorer roots. The app runs on Preprod (see README). */
 const FAUCET: Record<NetworkId, string> = {
@@ -55,10 +55,10 @@ export const config = {
    * Address of the deployed LOWBALL contract. `null` until the deploy lands —
    * the UI stays browsable and every bid affordance explains why it is off.
    */
-  contractAddress: trimmed(env.VITE_CONTRACT_ADDRESS) ?? PREPROD_CONTRACT,
+  contractAddress: trimmed(env.VITE_CONTRACT_ADDRESS) ?? PREVIEW_CONTRACT,
 
-  indexerUri: trimmed(env.VITE_INDEXER_URI) ?? PREPROD_INDEXER,
-  indexerWsUri: trimmed(env.VITE_INDEXER_WS_URI) ?? PREPROD_INDEXER_WS,
+  indexerUri: trimmed(env.VITE_INDEXER_URI) ?? PREVIEW_INDEXER,
+  indexerWsUri: trimmed(env.VITE_INDEXER_WS_URI) ?? PREVIEW_INDEXER_WS,
 
   /** Used only when the connected wallet reports no prover of its own. */
   proofServerUri: trimmed(env.VITE_PROOF_SERVER_URI) ?? 'http://127.0.0.1:6300',
